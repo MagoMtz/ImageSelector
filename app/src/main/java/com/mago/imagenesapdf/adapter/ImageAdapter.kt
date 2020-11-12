@@ -77,8 +77,10 @@ class ImageAdapter() : RecyclerView.Adapter<ImageAdapter.ViewHolder>() {
             if (file.isDirectory && !file.listFiles(ImageFileFilter()).isNullOrEmpty()) {
                 items.add(ImageItem(file.absolutePath, true, null))
             } else {
-                val imageBm = BitmapUtil.decodeBitmapFromFile(file.absolutePath, 100, 100)
-                items.add(ImageItem(file.absolutePath, false, imageBm))
+                if (!file.isDirectory) {
+                    val imageBm = BitmapUtil.decodeBitmapFromFile(file.absolutePath, 100, 100)
+                    items.add(ImageItem(file.absolutePath, false, imageBm))
+                }
             }
         }
         return items
@@ -86,6 +88,12 @@ class ImageAdapter() : RecyclerView.Adapter<ImageAdapter.ViewHolder>() {
 
     private fun getFileName(file: String): String {
         return file.split("/").last()
+    }
+
+    private fun isImageFile(filePath: String): Boolean {
+        return filePath.endsWith(".jpg") ||
+                filePath.endsWith(".png") ||
+                filePath.endsWith(".jpeg")
     }
 
     class ViewHolder(v: View) : RecyclerView.ViewHolder(v)

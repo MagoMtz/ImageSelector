@@ -5,10 +5,7 @@ import android.os.Environment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
 import android.widget.LinearLayout
-import androidx.activity.addCallback
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -17,7 +14,6 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.*
 import com.mago.imagenesapdf.adapter.ImageAdapter
 import com.mago.imagenesapdf.adapter.OnItemClickListener
-import com.mago.imagenesapdf.util.ImageFileFilter
 import com.otaliastudios.cameraview.CameraListener
 import com.otaliastudios.cameraview.PictureResult
 import kotlinx.android.synthetic.main.camera_bottom_sheet.*
@@ -25,12 +21,10 @@ import kotlinx.android.synthetic.main.camera_bottom_sheet.view.*
 import kotlinx.android.synthetic.main.fragment_camera_content.*
 import java.io.File
 import java.util.*
-import kotlin.collections.ArrayList
 
 class CameraFragment : Fragment() {
     private lateinit var sheetBehavior: BottomSheetBehavior<LinearLayout>
     private val pathStack = Stack<String>()
-    private lateinit var spAdapter: ArrayAdapter<String>
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -51,9 +45,7 @@ class CameraFragment : Fragment() {
         setClickListeners()
         setupSheetBehavior()
         setupPeekRV()
-        setupMainRV(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).absolutePath.plus("/Camera"))
-        setupFolderSpinner(createImageFolderList(Environment.getExternalStorageDirectory().absolutePath))
-        //setupFolderSpinner(createImageFolderList(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).absolutePath))
+        setupFirstMainRV()
     }
 
     private fun setupCameraListener() {
@@ -120,7 +112,18 @@ class CameraFragment : Fragment() {
         rv_peek.adapter = adapter
     }
 
+    private fun setupFirstMainRV() {
+        val externalStorage = Environment.getExternalStorageDirectory().absolutePath
+        val externalStorageDCIM = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).absolutePath
+        val camera = externalStorageDCIM.plus("/Camera")
+        pathStack.push(externalStorage)
+        pathStack.push(externalStorageDCIM)
+        setupMainRV(camera)
+    }
+
     private fun setupMainRV(directory: String) {
+        tv_location.text = directory
+
         val adapter = ImageAdapter()
         adapter.setupAdapter(directory)
         adapter.setOnItemClickListener(object : OnItemClickListener {
@@ -129,6 +132,7 @@ class CameraFragment : Fragment() {
                 adapter.setupAdapter(path)
                 if (file.parent != null) {
                     pathStack.push(file.parentFile?.absolutePath)
+                    tv_location.text = file.absolutePath
                 }
             }
             override fun onImageClick(path: String) {}
@@ -138,23 +142,6 @@ class CameraFragment : Fragment() {
         rv_main.adapter = adapter
         rv_main.scrollToPosition(0)
         rv_main.addOnScrollListener(mainRVScrollListener())
-    }
-
-    private fun setupFolderSpinner(folderList: List<String>) {
-        spAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, folderList)
-        sp_location.adapter = spAdapter
-        sp_location.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(
-                parent: AdapterView<*>?,
-                view: View?,
-                position: Int,
-                id: Long
-            ) {
-                val imagesAdapter = rv_main.adapter as ImageAdapter
-                imagesAdapter.setupAdapter(folderList[position])
-            }
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-        }
     }
 
     private fun mainRVScrollListener(): RecyclerView.OnScrollListener {
@@ -173,19 +160,6 @@ class CameraFragment : Fragment() {
                 }
             }
         }
-    }
-
-    private fun createImageFolderList(path: String): List<String> {
-        val items = ArrayList<String>()
-
-        val files = File(path).listFiles(ImageFileFilter())
-        files?.forEach { file ->
-            if (file.isDirectory && !file.listFiles(ImageFileFilter()).isNullOrEmpty()) {
-                items.add(file.absolutePath)
-            }
-        }
-
-        return items
     }
 
     private fun subdirectoryBack() {

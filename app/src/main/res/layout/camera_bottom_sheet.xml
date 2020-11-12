@@ -96,8 +96,8 @@
                     android:src="@drawable/ic_back"
                     android:tint="@android:color/darker_gray" />
 
-                <Spinner
-                    android:id="@+id/sp_location"
+                <TextView
+                    android:id="@+id/tv_location"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
@@ -105,7 +105,7 @@
                     android:layout_marginEnd="16dp"
                     android:layout_weight="1"
                     android:textAppearance="@style/TextAppearance.AppCompat.Title"
-                    android:textColor="@android:color/white" />
+                    />
 
                 <ImageButton
                     android:id="@+id/btn_subdirectory_back"
@@ -125,6 +125,7 @@
             android:id="@+id/rv_main"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:paddingBottom="?android:attr/actionBarSize"
             android:scrollbars="vertical"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

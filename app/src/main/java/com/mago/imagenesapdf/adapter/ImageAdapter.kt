@@ -5,7 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
-import com.mago.imagenesapdf.ImageFileFilter
+import com.mago.imagenesapdf.util.ImageFileFilter
 import com.mago.imagenesapdf.R
 import com.mago.imagenesapdf.model.ImageItem
 import com.mago.imagenesapdf.util.BitmapUtil

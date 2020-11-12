@@ -107,6 +107,15 @@
                     android:textAppearance="@style/TextAppearance.AppCompat.Title"
                     android:textColor="@android:color/white" />
 
+                <ImageButton
+                    android:id="@+id/btn_subdirectory_back"
+                    android:layout_width="?attr/actionBarSize"
+                    android:layout_height="?attr/actionBarSize"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_subdirectory_arrow_left"
+                    android:tint="@android:color/darker_gray" />
+
             </LinearLayout>
 
 

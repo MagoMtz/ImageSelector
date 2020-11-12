@@ -1,19 +1,25 @@
 package com.mago.imagenesapdf
 
 import android.os.Bundle
-import com.google.android.material.snackbar.Snackbar
-import androidx.appcompat.app.AppCompatActivity
+import android.os.Environment
 import android.view.Menu
 import android.view.MenuItem
-
+import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
+import java.io.File
+
 
 class MainActivity : AppCompatActivity() {
+
+    companion object {
+        val imagesFolder = arrayListOf<String>()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
+        //getFile(Environment.getExternalStorageDirectory())
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -31,4 +37,29 @@ class MainActivity : AppCompatActivity() {
             else -> super.onOptionsItemSelected(item)
         }
     }
+
+    private fun getFile(dir: File) {
+        val listFile = dir.listFiles()
+        if (listFile != null && listFile.isNotEmpty()) {
+            for (file in listFile) {
+                if (file.isDirectory) {
+                    getFile(file)
+                } else {
+                    if (file.name.endsWith(".png")
+                        || file.name.endsWith(".jpg")
+                        || file.name.endsWith(".jpeg")
+                        || file.name.endsWith(".gif")
+                        || file.name.endsWith(".bmp")
+                        || file.name.endsWith(".webp")
+                    ) {
+                        val temp: String =
+                            file.path.substring(0, file.path.lastIndexOf('/'))
+                        if (!imagesFolder.contains(temp)) imagesFolder.add(temp)
+                    }
+                }
+            }
+        }
+
+    }
+
 }

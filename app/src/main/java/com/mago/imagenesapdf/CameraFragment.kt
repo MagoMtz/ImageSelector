@@ -7,6 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.fragment.app.Fragment
+import androidx.navigation.NavController
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -14,10 +16,12 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.*
 import com.mago.imagenesapdf.adapter.ImageAdapter
 import com.mago.imagenesapdf.adapter.OnItemClickListener
+import com.mago.imagenesapdf.extensions.addFragment
 import com.mago.imagenesapdf.model.ImageItem
 import com.mago.imagenesapdf.util.BitmapUtil
 import com.mago.imagenesapdf.util.ImageFileFilter
 import com.otaliastudios.cameraview.CameraListener
+import com.otaliastudios.cameraview.FileCallback
 import com.otaliastudios.cameraview.PictureResult
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Observable
@@ -59,7 +63,21 @@ class CameraFragment : Fragment() {
     private fun setupCameraListener() {
         camera.addCameraListener(object : CameraListener() {
             override fun onPictureTaken(result: PictureResult) {
+                result.toFile(File(AppConstants.IMAGES_SAVED_PATH.plus("MCamera"))) { file ->
+                    if (file == null)
+                        return@toFile
 
+                    val imagesList = listOf(ImageItem(file.absolutePath, false, null))
+
+                    val navHostFragment = findNavController()
+                    navHostFragment.navigate(R.id.imageVisualizerFragment)
+/*
+                    childFragmentManager.addFragment(
+                        ,
+                        ImageVisualizerFragment.newInstance(imagesList),
+                        ImageVisualizerFragment.TAG
+                    )*/
+                }
             }
         })
     }

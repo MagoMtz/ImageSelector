@@ -13,16 +13,37 @@
 
         <action
             android:id="@+id/action_FirstFragment_to_SecondFragment"
-            app:destination="@id/SecondFragment" />
+            app:destination="@id/cameraFragment"
+            app:enterAnim="@android:anim/slide_in_left"
+            app:exitAnim="@android:anim/slide_out_right" />
     </fragment>
+
     <fragment
-        android:id="@+id/SecondFragment"
+        android:id="@+id/cameraFragment"
         android:name="com.mago.imagenesapdf.CameraFragment"
         android:label="@string/second_fragment_label"
         tools:layout="@layout/fragment_camera">
 
         <action
-            android:id="@+id/action_SecondFragment_to_FirstFragment"
-            app:destination="@id/FirstFragment" />
+            android:id="@+id/action_cameraFragment_to_FirstFragment"
+            app:destination="@id/FirstFragment"
+            />
+        <action
+            android:id="@+id/action_cameraFragment_to_imageVisualizerFragment"
+            app:destination="@id/imageVisualizerFragment"
+            app:enterAnim="@android:anim/slide_in_left"
+            app:exitAnim="@android:anim/slide_out_right" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/imageVisualizerFragment"
+        android:name="com.mago.imagenesapdf.ImageVisualizerFragment"
+        android:label="fragment_image_visualizer"
+        tools:layout="@layout/fragment_image_visualizer" >
+
+        <argument
+            android:name="imagesListJson"
+            app:argType="string" />
+
     </fragment>
 </navigation>

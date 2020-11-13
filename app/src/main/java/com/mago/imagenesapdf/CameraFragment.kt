@@ -14,8 +14,15 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.*
 import com.mago.imagenesapdf.adapter.ImageAdapter
 import com.mago.imagenesapdf.adapter.OnItemClickListener
+import com.mago.imagenesapdf.model.ImageItem
+import com.mago.imagenesapdf.util.BitmapUtil
+import com.mago.imagenesapdf.util.ImageFileFilter
 import com.otaliastudios.cameraview.CameraListener
 import com.otaliastudios.cameraview.PictureResult
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.disposables.CompositeDisposable
+import io.reactivex.rxjava3.schedulers.Schedulers
 import kotlinx.android.synthetic.main.camera_bottom_sheet.*
 import kotlinx.android.synthetic.main.camera_bottom_sheet.view.*
 import kotlinx.android.synthetic.main.fragment_camera_content.*
@@ -25,6 +32,7 @@ import java.util.*
 class CameraFragment : Fragment() {
     private lateinit var sheetBehavior: BottomSheetBehavior<LinearLayout>
     private val pathStack = Stack<String>()
+    private val disposables = CompositeDisposable()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -106,7 +114,7 @@ class CameraFragment : Fragment() {
     private fun setupPeekRV() {
         val directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).absolutePath.plus("/Camera")
         val adapter = ImageAdapter()
-        adapter.setupAdapter(directory)
+        adapterChangeSource(directory, adapter)//adapter.setupAdapter(directory)
 
         rv_peek.layoutManager = LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
         rv_peek.adapter = adapter
@@ -125,11 +133,17 @@ class CameraFragment : Fragment() {
         tv_location.text = directory
 
         val adapter = ImageAdapter()
-        adapter.setupAdapter(directory)
+        adapterChangeSource(directory, adapter)
+
+        rv_main.layoutManager = GridLayoutManager(context, 3)
+        rv_main.adapter = adapter
+        rv_main.scrollToPosition(0)
+        rv_main.addOnScrollListener(mainRVScrollListener())
+
         adapter.setOnItemClickListener(object : OnItemClickListener {
             override fun onDirectoryClick(path: String) {
                 val file = File(path)
-                adapter.setupAdapter(path)
+                adapterChangeSource(path, adapter)
                 if (file.parent != null) {
                     pathStack.push(file.parentFile?.absolutePath)
                     tv_location.text = file.absolutePath
@@ -137,11 +151,6 @@ class CameraFragment : Fragment() {
             }
             override fun onImageClick(path: String) {}
         })
-
-        rv_main.layoutManager = GridLayoutManager(context, 3)
-        rv_main.adapter = adapter
-        rv_main.scrollToPosition(0)
-        rv_main.addOnScrollListener(mainRVScrollListener())
     }
 
     private fun mainRVScrollListener(): RecyclerView.OnScrollListener {
@@ -171,6 +180,39 @@ class CameraFragment : Fragment() {
         if (!parent.isNullOrEmpty()){
             setupMainRV(lastDir)
         }
+    }
+
+    private fun createImageThumbnails(directoryPath: String): List<ImageItem> {
+        val items = ArrayList<ImageItem>()
+        val files = File(directoryPath).listFiles(ImageFileFilter())
+        files?.forEach { file ->
+            if (file.isDirectory && !file.listFiles(ImageFileFilter()).isNullOrEmpty()) {
+                items.add(ImageItem(file.absolutePath, true, null))
+            } else {
+                if (!file.isDirectory) {
+                    val imageBm = BitmapUtil.decodeBitmapFromFile(file.absolutePath, 100, 100)
+                    items.add(ImageItem(file.absolutePath, false, imageBm))
+                }
+            }
+        }
+        return items
+    }
+
+    private fun adapterChangeSource(directory: String, adapter: ImageAdapter) {
+        ly_shimmer.startShimmerAnimation()
+        ly_shimmer.visibility = View.VISIBLE
+        rv_main.visibility = View.GONE
+        val obs = Observable.fromCallable { createImageThumbnails(directory) }
+        disposables.add(
+            obs.subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { data ->
+                    adapter.setupAdapter(data)
+                    ly_shimmer.visibility = View.GONE
+                    rv_main.visibility = View.VISIBLE
+                    ly_shimmer.stopShimmerAnimation()
+                }
+        )
     }
 
 }

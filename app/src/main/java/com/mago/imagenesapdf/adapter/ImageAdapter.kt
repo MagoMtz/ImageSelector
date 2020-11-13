@@ -5,12 +5,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
-import com.mago.imagenesapdf.util.ImageFileFilter
 import com.mago.imagenesapdf.R
 import com.mago.imagenesapdf.model.ImageItem
-import com.mago.imagenesapdf.util.BitmapUtil
 import kotlinx.android.synthetic.main.content_image_adapter.view.*
-import java.io.File
 
 
 /**
@@ -61,29 +58,13 @@ class ImageAdapter() : RecyclerView.Adapter<ImageAdapter.ViewHolder>() {
         return position.toLong()
     }
 
-    fun setupAdapter(directoryPath: String) {
-        images = createImageThumbnails(directoryPath)
+    fun setupAdapter(imagesList: List<ImageItem>) {
+        images = imagesList
         notifyDataSetChanged()
     }
 
     fun setOnItemClickListener(onItemClickListener: OnItemClickListener) {
         this.onItemClickListener = onItemClickListener
-    }
-
-    private fun createImageThumbnails(directoryPath: String): List<ImageItem> {
-        val items = ArrayList<ImageItem>()
-        val files = File(directoryPath).listFiles(ImageFileFilter())
-        files?.forEach { file ->
-            if (file.isDirectory && !file.listFiles(ImageFileFilter()).isNullOrEmpty()) {
-                items.add(ImageItem(file.absolutePath, true, null))
-            } else {
-                if (!file.isDirectory) {
-                    val imageBm = BitmapUtil.decodeBitmapFromFile(file.absolutePath, 100, 100)
-                    items.add(ImageItem(file.absolutePath, false, imageBm))
-                }
-            }
-        }
-        return items
     }
 
     private fun getFileName(file: String): String {

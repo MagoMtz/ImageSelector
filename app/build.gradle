@@ -57,4 +57,9 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.0.0'
 
     api 'com.otaliastudios:cameraview:2.6.4'
+
+    implementation 'com.facebook.shimmer:shimmer:0.1.0@aar'
+
+    implementation 'io.reactivex.rxjava3:rxandroid:3.0.0'
+    implementation 'io.reactivex.rxjava3:rxjava:3.0.0'
 }

@@ -4,12 +4,16 @@ import android.os.Bundle
 import android.os.Environment
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import com.mago.imagenesapdf.extensions.replaceFragment
+import com.mago.imagenesapdf.model.ImageDescription
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.content_main.*
 import java.io.File
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), CameraFragmentListener {
 
     companion object {
         val imagesFolder = arrayListOf<String>()
@@ -20,22 +24,30 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
         //getFile(Environment.getExternalStorageDirectory())
-    }
+        val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).absolutePath.plus("/MCamera"))
+        makeFile(
+            file,
+            file.absolutePath
+        )
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.menu_main, menu)
-        return true
-    }
+        openCamera()
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        return when (item.itemId) {
-            R.id.action_settings -> true
-            else -> super.onOptionsItemSelected(item)
+        btn_open_camera.setOnClickListener {
+            openCamera()
         }
+
+    }
+
+    override fun onImageSelection(imageDescriptionList: List<ImageDescription>) {
+        tv_text.visibility = View.VISIBLE
+        btn_open_camera.visibility = View.VISIBLE
+
+        val sb = StringBuilder()
+        imageDescriptionList.forEach { imageDescription ->
+            sb.append(imageDescription.path)
+            sb.append("\n")
+        }
+        tv_text.text = sb.toString()
     }
 
     private fun getFile(dir: File) {
@@ -60,6 +72,26 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+    }
+
+    fun makeFile(file: File, path: String) {
+        if (!file.exists()) {
+            val slashCount = path.toCharArray().filter { it == '/' }.count()
+            val fileName = path.split("/")[slashCount]
+            val mPath = path.replace(fileName, "")
+            File(mPath).mkdirs()
+            file.createNewFile()
+        }
+    }
+
+    private fun openCamera() {
+        supportFragmentManager.replaceFragment(
+            R.id.ly_container,
+            CameraFragment.newInstance(),
+            CameraFragment.TAG
+        )
+        tv_text.visibility = View.GONE
+        btn_open_camera.visibility = View.GONE
     }
 
 }

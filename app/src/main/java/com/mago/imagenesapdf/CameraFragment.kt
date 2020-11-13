@@ -14,11 +14,15 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.*
+import com.google.gson.Gson
 import com.mago.imagenesapdf.adapter.ImageAdapter
 import com.mago.imagenesapdf.adapter.OnItemClickListener
 import com.mago.imagenesapdf.extensions.addFragment
+import com.mago.imagenesapdf.extensions.removeFragment
+import com.mago.imagenesapdf.model.ImageDescription
 import com.mago.imagenesapdf.model.ImageItem
 import com.mago.imagenesapdf.util.BitmapUtil
+import com.mago.imagenesapdf.util.FragmentInstanceManager
 import com.mago.imagenesapdf.util.ImageFileFilter
 import com.otaliastudios.cameraview.CameraListener
 import com.otaliastudios.cameraview.FileCallback
@@ -30,13 +34,30 @@ import io.reactivex.rxjava3.schedulers.Schedulers
 import kotlinx.android.synthetic.main.camera_bottom_sheet.*
 import kotlinx.android.synthetic.main.camera_bottom_sheet.view.*
 import kotlinx.android.synthetic.main.fragment_camera_content.*
+import kotlinx.android.synthetic.main.fragment_image_visualizer.*
 import java.io.File
+import java.text.SimpleDateFormat
 import java.util.*
 
-class CameraFragment : Fragment() {
+class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
     private lateinit var sheetBehavior: BottomSheetBehavior<LinearLayout>
     private val pathStack = Stack<String>()
     private val disposables = CompositeDisposable()
+    private lateinit var cameraFragmentListener: CameraFragmentListener
+
+    companion object {
+        const val TAG = "CameraFragment"
+
+        fun newInstance(): CameraFragment {
+            return CameraFragment()
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        FragmentInstanceManager().addFragmentInstance(TAG, this)
+        cameraFragmentListener = activity as CameraFragmentListener
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -52,6 +73,16 @@ class CameraFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
     }
 
+    override fun onDetach() {
+        FragmentInstanceManager().removeFragmentInstance(TAG)
+        super.onDetach()
+    }
+
+    override fun onImagesSelected(imageDescriptionList: List<ImageDescription>) {
+        cameraFragmentListener.onImageSelection(imageDescriptionList)
+        parentFragmentManager.removeFragment(this)
+    }
+
     private fun setup() {
         setupCameraListener()
         setClickListeners()
@@ -63,20 +94,13 @@ class CameraFragment : Fragment() {
     private fun setupCameraListener() {
         camera.addCameraListener(object : CameraListener() {
             override fun onPictureTaken(result: PictureResult) {
-                result.toFile(File(AppConstants.IMAGES_SAVED_PATH.plus("MCamera"))) { file ->
+                val fileName = "IMG_${SimpleDateFormat("ddMMyyyy_HHmmSS",Locale.getDefault()).format(Date())}.jpg"
+                result.toFile(File(AppConstants.IMAGES_SAVED_PATH.plus("/MCamera/$fileName"))) { file ->
                     if (file == null)
                         return@toFile
 
                     val imagesList = listOf(ImageItem(file.absolutePath, false, null))
-
-                    val navHostFragment = findNavController()
-                    navHostFragment.navigate(R.id.imageVisualizerFragment)
-/*
-                    childFragmentManager.addFragment(
-                        ,
-                        ImageVisualizerFragment.newInstance(imagesList),
-                        ImageVisualizerFragment.TAG
-                    )*/
+                    navigateToImageVisualizer(imagesList)
                 }
             }
         })
@@ -239,6 +263,19 @@ class CameraFragment : Fragment() {
                     rv_main.visibility = View.VISIBLE
                     ly_shimmer.stopShimmerAnimation()
                 }
+        )
+    }
+
+    private fun navigateToImageVisualizer(imagesList: List<ImageItem>) {
+        /*
+        val navHostFragment = findNavController()
+        val action = CameraFragmentDirections.actionCameraFragmentToImageVisualizerFragment(Gson().toJson(imagesList))
+        navHostFragment.navigate(action)
+         */
+        parentFragmentManager.addFragment(
+            R.id.ly_container,
+            ImageVisualizerFragment.newInstance(imagesList),
+            ImageVisualizerFragment.TAG
         )
     }
 

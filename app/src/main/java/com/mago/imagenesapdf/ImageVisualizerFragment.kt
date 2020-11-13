@@ -6,17 +6,28 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.mago.imagenesapdf.extensions.removeFragment
 import com.mago.imagenesapdf.model.ImageDescription
 import com.mago.imagenesapdf.model.ImageItem
 import com.mago.imagenesapdf.util.BitmapUtil
+import com.mago.imagenesapdf.util.FragmentInstanceManager
 import kotlinx.android.synthetic.main.fragment_image_visualizer.*
+import kotlin.concurrent.fixedRateTimer
 
 class ImageVisualizerFragment : Fragment() {
     private lateinit var imagesList: List<ImageItem>
     private lateinit var imageDescriptionList: List<ImageDescription>
     private lateinit var currentImage: Bitmap
+    //private lateinit var cameraFragmentListener: CameraFragmentListener
+    private lateinit var listener: Listener
+
+    interface Listener {
+        fun onImagesSelected(imageDescriptionList: List<ImageDescription>)
+    }
 
     companion object {
         const val TAG = "ImageVisualizerFragment"
@@ -36,9 +47,14 @@ class ImageVisualizerFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val imagesJson = arguments?.getString(IMAGES_PARAM) ?: ""
+        FragmentInstanceManager().addFragmentInstance(TAG, this)
+
+        listener = FragmentInstanceManager().findFragmentByTag(CameraFragment.TAG) as Listener
+
+        val imageListJson = arguments?.getString(IMAGES_PARAM) ?: ""
         val type = object : TypeToken<List<ImageItem>>() {}.type
-        imagesList = Gson().fromJson<List<ImageItem>>(imagesJson, type) ?: arrayListOf()
+        imagesList = Gson().fromJson<List<ImageItem>>(imageListJson, type) ?: arrayListOf()
+        //cameraFragmentListener = activity as CameraFragmentListener
     }
 
     override fun onCreateView(
@@ -52,6 +68,11 @@ class ImageVisualizerFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setup()
+    }
+
+    override fun onDetach() {
+        FragmentInstanceManager().removeFragmentInstance(TAG)
+        super.onDetach()
     }
 
     private fun setup() {
@@ -70,16 +91,20 @@ class ImageVisualizerFragment : Fragment() {
         btn_add_image.setOnClickListener {
 
         }
+        btn_send.setOnClickListener {
+            //cameraFragmentListener.onImageSelection(imageDescriptionList)
+            //findNavController().navigateUp()
+            listener.onImagesSelected(imageDescriptionList)
+            parentFragmentManager.removeFragment(this)
+        }
     }
 
     private fun setImagePreview(pos: Int) {
         if (imagesList.isEmpty())
             return
 
-        val imageDescription = imagesList[pos]
-        val ivWidth = iv_image.width
-        val ivHeight = iv_image.height
-        val imageBm = BitmapUtil.decodeBitmapFromFile(imageDescription.path, ivWidth, ivHeight)
+        val imageItem = imagesList[pos]
+        val imageBm = BitmapUtil.decodeBitmapFromFile(imageItem.path, 800, 600)
         iv_image.setImageBitmap(imageBm)
     }
 
@@ -92,6 +117,12 @@ class ImageVisualizerFragment : Fragment() {
             rv_images.visibility = View.GONE
             return
         }
+    }
+
+    private fun getFragmentArgs() {
+        val mArgs: ImageVisualizerFragmentArgs by navArgs()
+        val type = object : TypeToken<List<ImageItem>>() {}.type
+        imagesList = Gson().fromJson<List<ImageItem>>(mArgs.imagesListJson, type) ?: arrayListOf()
     }
 
 }

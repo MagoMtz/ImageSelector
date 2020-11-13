@@ -103,7 +103,8 @@ class CameraFragment : Fragment() {
                         rv_main.suppressLayout(true)
                     }
 
-                    else -> {}
+                    else -> {
+                    }
 
                 }
             }
@@ -112,9 +113,10 @@ class CameraFragment : Fragment() {
     }
 
     private fun setupPeekRV() {
-        val directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).absolutePath.plus("/Camera")
+        val directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)
+            .absolutePath.plus("/Camera")
         val adapter = ImageAdapter()
-        adapterChangeSource(directory, adapter)//adapter.setupAdapter(directory)
+        adapterChangeSource(directory, adapter)
 
         rv_peek.layoutManager = LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
         rv_peek.adapter = adapter
@@ -122,7 +124,8 @@ class CameraFragment : Fragment() {
 
     private fun setupFirstMainRV() {
         val externalStorage = Environment.getExternalStorageDirectory().absolutePath
-        val externalStorageDCIM = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).absolutePath
+        val externalStorageDCIM =
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).absolutePath
         val camera = externalStorageDCIM.plus("/Camera")
         pathStack.push(externalStorage)
         pathStack.push(externalStorageDCIM)
@@ -147,8 +150,10 @@ class CameraFragment : Fragment() {
                 if (file.parent != null) {
                     pathStack.push(file.parentFile?.absolutePath)
                     tv_location.text = file.absolutePath
+                    btn_subdirectory_back.visibility = View.VISIBLE
                 }
             }
+
             override fun onImageClick(path: String) {}
         })
     }
@@ -172,14 +177,18 @@ class CameraFragment : Fragment() {
     }
 
     private fun subdirectoryBack() {
-        if (pathStack.empty())
+        if (pathStack.empty()) {
             return
+        }
         val lastDir = pathStack.pop()
 
         val parent = File(lastDir).listFiles() ?: arrayOf()
-        if (!parent.isNullOrEmpty()){
+        if (!parent.isNullOrEmpty()) {
             setupMainRV(lastDir)
         }
+
+        if (pathStack.empty())
+            btn_subdirectory_back.visibility = View.INVISIBLE
     }
 
     private fun createImageThumbnails(directoryPath: String): List<ImageItem> {

@@ -108,15 +108,15 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
                     if (file == null)
                         return@toFile
 
-                    val imagesList = listOf(
+                    imageItemList.add(0,
                         ImageItem(
                             file.absolutePath,
                             false,
-                            null,
+                            BitmapUtil.decodeBitmapFromFile(file.absolutePath, 100, 100),
                             BitmapUtil.decodeBitmapFromFile(file.absolutePath, 800, 600)
                         )
                     )
-                    navigateToImageVisualizer(imagesList)
+                    navigateToImageVisualizer(imageItemList)
                 }
             }
         })
@@ -152,6 +152,7 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
                         sheetBehavior.isDraggable = true
                     }
                     STATE_EXPANDED -> {
+                        camera.close()
                         ly_peek_view.visibility = View.GONE
                         rv_main.suppressLayout(false)
                         sheetBehavior.isDraggable = false
@@ -159,6 +160,7 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
                     STATE_COLLAPSED -> {
                         ly_peek_view.visibility = View.VISIBLE
                         sheetBehavior.isDraggable = true
+                        camera.open()
                     }
                     STATE_DRAGGING -> {
                         rv_main.suppressLayout(true)

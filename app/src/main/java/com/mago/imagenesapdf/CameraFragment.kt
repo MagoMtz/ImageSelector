@@ -7,25 +7,20 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.fragment.app.Fragment
-import androidx.navigation.NavController
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.*
-import com.google.gson.Gson
 import com.mago.imagenesapdf.adapter.ImageAdapter
 import com.mago.imagenesapdf.adapter.OnItemClickListener
 import com.mago.imagenesapdf.extensions.addFragment
 import com.mago.imagenesapdf.extensions.removeFragment
-import com.mago.imagenesapdf.model.ImageDescription
 import com.mago.imagenesapdf.model.ImageItem
 import com.mago.imagenesapdf.util.BitmapUtil
 import com.mago.imagenesapdf.util.FragmentInstanceManager
 import com.mago.imagenesapdf.util.ImageFileFilter
 import com.otaliastudios.cameraview.CameraListener
-import com.otaliastudios.cameraview.FileCallback
 import com.otaliastudios.cameraview.PictureResult
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Observable
@@ -34,7 +29,6 @@ import io.reactivex.rxjava3.schedulers.Schedulers
 import kotlinx.android.synthetic.main.camera_bottom_sheet.*
 import kotlinx.android.synthetic.main.camera_bottom_sheet.view.*
 import kotlinx.android.synthetic.main.fragment_camera_content.*
-import kotlinx.android.synthetic.main.fragment_image_visualizer.*
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -81,8 +75,8 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
         super.onDetach()
     }
 
-    override fun onImagesSelected(imageDescriptionList: List<ImageDescription>) {
-        cameraFragmentListener.onImageSelection(imageDescriptionList)
+    override fun onImagesSelected(imageItemList: List<ImageItem>) {
+        cameraFragmentListener.onImageSelection(imageItemList)
         parentFragmentManager.removeFragment(this)
     }
 
@@ -102,7 +96,14 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
                     if (file == null)
                         return@toFile
 
-                    val imagesList = listOf(ImageItem(file.absolutePath, false, null))
+                    val imagesList = listOf(
+                        ImageItem(
+                            file.absolutePath,
+                            false,
+                            null,
+                            BitmapUtil.decodeBitmapFromFile(file.absolutePath, 800, 600)
+                        )
+                    )
                     navigateToImageVisualizer(imagesList)
                 }
             }
@@ -269,11 +270,19 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
         val files = File(directoryPath).listFiles(ImageFileFilter())
         files?.forEach { file ->
             if (file.isDirectory && !file.listFiles(ImageFileFilter()).isNullOrEmpty()) {
-                items.add(ImageItem(file.absolutePath, true, null))
+                items.add(ImageItem(file.absolutePath, true, null, null))
             } else {
                 if (!file.isDirectory) {
                     val imageBm = BitmapUtil.decodeBitmapFromFile(file.absolutePath, 100, 100)
-                    items.add(ImageItem(file.absolutePath, false, imageBm))
+                    val previewBm = BitmapUtil.decodeBitmapFromFile(file.absolutePath, 800, 600)
+                    items.add(
+                        ImageItem(
+                            file.absolutePath,
+                            false,
+                            imageBm,
+                            previewBm
+                        )
+                    )
                 }
             }
         }

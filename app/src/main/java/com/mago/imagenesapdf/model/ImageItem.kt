@@ -10,5 +10,7 @@ data class ImageItem (
     var path: String,
     var isDirectory: Boolean,
     var imageBm: Bitmap?,
+    var previewBm: Bitmap?,
+    var description: String = "",
     var isSelected: Boolean = false
 )

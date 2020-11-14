@@ -1,38 +1,32 @@
 package com.mago.imagenesapdf
 
-import android.graphics.Bitmap
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.mago.imagenesapdf.adapter.ImageAdapter
 import com.mago.imagenesapdf.adapter.SelectedImagesAdapter
 import com.mago.imagenesapdf.extensions.removeFragment
-import com.mago.imagenesapdf.model.ImageDescription
 import com.mago.imagenesapdf.model.ImageItem
-import com.mago.imagenesapdf.util.BitmapUtil
 import com.mago.imagenesapdf.util.FragmentInstanceManager
-import kotlinx.android.synthetic.main.camera_bottom_sheet.*
 import kotlinx.android.synthetic.main.fragment_image_visualizer.*
-import java.text.FieldPosition
-import kotlin.concurrent.fixedRateTimer
 
 class ImageVisualizerFragment : Fragment() {
     private lateinit var imagesList: List<ImageItem>
-    private lateinit var imageDescriptionList: List<ImageDescription>
-    private lateinit var currentImage: Bitmap
+    //private lateinit var imageDescriptionList: List<ImageDescription>
+    private lateinit var currentImage: ImageItem
     //private lateinit var cameraFragmentListener: CameraFragmentListener
     private lateinit var listener: Listener
 
     interface Listener {
-        fun onImagesSelected(imageDescriptionList: List<ImageDescription>)
+        fun onImagesSelected(imageItemList: List<ImageItem>)
     }
 
     companion object {
@@ -84,7 +78,7 @@ class ImageVisualizerFragment : Fragment() {
     private fun setup() {
         setOnClickListeners()
         setupImagesRV()
-        setImagePreview(0)
+        setImagePreview(imagesList[0])
     }
 
     private fun setOnClickListeners() {
@@ -100,39 +94,57 @@ class ImageVisualizerFragment : Fragment() {
         btn_send.setOnClickListener {
             //cameraFragmentListener.onImageSelection(imageDescriptionList)
             //findNavController().navigateUp()
-            listener.onImagesSelected(imageDescriptionList)
+            listener.onImagesSelected(imagesList)
             parentFragmentManager.removeFragment(this)
         }
+        et_description.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                if (::currentImage.isInitialized)
+                    currentImage.description = s?.toString() ?: ""
+            }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        })
     }
 
-    private fun setImagePreview(pos: Int) {
-        if (imagesList.isEmpty())
-            return
+    private fun setImagePreview(imageItem: ImageItem) {
+        //if (imagesList.isEmpty())
+        //    return
+/*
+        val imageItem = imagesList[pos].apply {
+            if (previewBm == null) {
+                val imageBm = BitmapUtil.decodeBitmapFromFile(path, 800, 600)
+                previewBm = imageBm
+            }
+        }
 
-        val imageItem = imagesList[pos]
-        val imageBm = BitmapUtil.decodeBitmapFromFile(imageItem.path, 800, 600)
-        iv_image.setImageBitmap(imageBm)
+ */
+        iv_image.setImageBitmap(imageItem.previewBm)
     }
 
     private fun setupImagesRV() {
+        /*
         imageDescriptionList = imagesList.map { imageItem ->
-            ImageDescription(imageItem.path, "")
+            ImageDescription(imageItem.path, "", imageItem.imageBm, imageItem.previewBm)
         }
 
         if (imageDescriptionList.size == 1) {
             rv_images.visibility = View.GONE
             return
         }
+         */
 
         val adapter = SelectedImagesAdapter()
-        adapter.setupAdapter(imageDescriptionList)
+        adapter.setupAdapter(imagesList)
 
         rv_images.layoutManager = LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
         rv_images.adapter = adapter
 
         adapter.setOnItemClickListener(object : SelectedImagesAdapter.OnItemClickListener {
-            override fun onItemClick(position: Int) {
-                setImagePreview(position)
+            override fun onItemClick(imageItem: ImageItem) {
+                setImagePreview(imageItem)
+                et_description.setText(imageItem.description)
+                currentImage = imageItem
             }
         })
     }

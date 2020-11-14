@@ -3,10 +3,10 @@ package com.mago.imagenesapdf.adapter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.mago.imagenesapdf.R
-import com.mago.imagenesapdf.model.ImageDescription
-import com.mago.imagenesapdf.util.BitmapUtil
+import com.mago.imagenesapdf.model.ImageItem
 import kotlinx.android.synthetic.main.content_selected_images_adapter.view.*
 
 /**
@@ -14,11 +14,11 @@ import kotlinx.android.synthetic.main.content_selected_images_adapter.view.*
  * @since 13/11/2020.
  */
 class SelectedImagesAdapter: RecyclerView.Adapter<SelectedImagesAdapter.ViewHolder>() {
-    private var imagesSelectedList: List<ImageDescription> = arrayListOf()
+    private var imagesSelectedList: List<ImageItem> = arrayListOf()
     private lateinit var listener: OnItemClickListener
 
     interface OnItemClickListener {
-        fun onItemClick(position: Int)
+        fun onItemClick(imageItem: ImageItem)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -30,17 +30,26 @@ class SelectedImagesAdapter: RecyclerView.Adapter<SelectedImagesAdapter.ViewHold
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val image = imagesSelectedList[position]
 
-        holder.itemView.iv_image.setImageBitmap(BitmapUtil.decodeBitmapFromFile(image.path, 60, 60))
-
+        holder.itemView.iv_image.setImageBitmap(image.imageBm)
+        if (image.isSelected) {
+            holder.itemView.setBackgroundColor(ContextCompat.getColor(holder.itemView.context, R.color.blue))
+        } else {
+            holder.itemView.background = null
+        }
         holder.itemView.setOnClickListener {
+            //holder.itemView.setBackgroundColor(ContextCompat.getColor(holder.itemView.context, R.color.blue))
+            imagesSelectedList.forEach { it.isSelected = false }
+            image.isSelected = true
+            //image.isSelected = !image.isSelected
+            notifyDataSetChanged()
             if (::listener.isInitialized)
-                listener.onItemClick(position)
+                listener.onItemClick(image)
         }
     }
 
     override fun getItemCount(): Int = imagesSelectedList.size
 
-    fun setupAdapter(imagesSelectedList: List<ImageDescription>) {
+    fun setupAdapter(imagesSelectedList: List<ImageItem>) {
         this.imagesSelectedList = imagesSelectedList
         notifyDataSetChanged()
     }

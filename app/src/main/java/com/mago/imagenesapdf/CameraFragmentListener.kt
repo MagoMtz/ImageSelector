@@ -1,11 +1,11 @@
 package com.mago.imagenesapdf
 
-import com.mago.imagenesapdf.model.ImageDescription
+import com.mago.imagenesapdf.model.ImageItem
 
 /**
  * @author by jmartinez
  * @since 13/11/2020.
  */
 interface CameraFragmentListener {
-    fun onImageSelection(imageDescriptionList: List<ImageDescription>)
+    fun onImageSelection(imageItemList: List<ImageItem>)
 }

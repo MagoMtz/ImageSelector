@@ -2,12 +2,10 @@ package com.mago.imagenesapdf
 
 import android.os.Bundle
 import android.os.Environment
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.mago.imagenesapdf.extensions.replaceFragment
-import com.mago.imagenesapdf.model.ImageDescription
+import com.mago.imagenesapdf.model.ImageItem
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import java.io.File
@@ -38,12 +36,12 @@ class MainActivity : AppCompatActivity(), CameraFragmentListener {
 
     }
 
-    override fun onImageSelection(imageDescriptionList: List<ImageDescription>) {
+    override fun onImageSelection(imageItemList: List<ImageItem>) {
         tv_text.visibility = View.VISIBLE
         btn_open_camera.visibility = View.VISIBLE
 
         val sb = StringBuilder()
-        imageDescriptionList.forEach { imageDescription ->
+        imageItemList.forEach { imageDescription ->
             sb.append(imageDescription.path)
             sb.append("\n")
         }

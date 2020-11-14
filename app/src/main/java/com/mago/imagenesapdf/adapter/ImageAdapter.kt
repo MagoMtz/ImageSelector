@@ -39,7 +39,7 @@ class ImageAdapter() : RecyclerView.Adapter<ImageAdapter.ViewHolder>() {
             )
             holder.itemView.setOnClickListener {
                 if (::onItemClickListener.isInitialized)
-                    onItemClickListener.onDirectoryClick(image.path)
+                    onItemClickListener.onDirectoryClick(image)
             }
         } else {
             if (image.imageBm != null)
@@ -54,7 +54,7 @@ class ImageAdapter() : RecyclerView.Adapter<ImageAdapter.ViewHolder>() {
                     multipleImageSelected(image, holder.itemView, position)
                 } else {
                     if (::onItemClickListener.isInitialized)
-                        onItemClickListener.onImageClick(image.path)
+                        onItemClickListener.onImageClick(image)
                 }
             }
             holder.itemView.setOnLongClickListener {
@@ -99,6 +99,9 @@ class ImageAdapter() : RecyclerView.Adapter<ImageAdapter.ViewHolder>() {
         }
         image.isSelected = !image.isSelected
         notifyDataSetChanged()
+
+        if (::onItemClickListener.isInitialized)
+            onItemClickListener.onImageAdd(imagesSelected)
     }
 
     class ViewHolder(v: View) : RecyclerView.ViewHolder(v)

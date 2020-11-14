@@ -17,7 +17,7 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:background="@drawable/ic_check"
-            android:backgroundTint="@color/gray"
+            android:backgroundTint="@color/green"
             android:elevation="2dp"
             android:visibility="gone"
             android:contentDescription="@null"

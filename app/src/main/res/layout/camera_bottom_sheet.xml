@@ -116,6 +116,16 @@
                     android:src="@drawable/ic_subdirectory_arrow_left"
                     android:tint="@android:color/darker_gray" />
 
+                <ImageButton
+                    android:id="@+id/btn_send_selected_images"
+                    android:layout_width="?attr/actionBarSize"
+                    android:layout_height="?attr/actionBarSize"
+                    android:visibility="gone"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_check"
+                    android:tint="@color/green" />
+
             </LinearLayout>
 
 

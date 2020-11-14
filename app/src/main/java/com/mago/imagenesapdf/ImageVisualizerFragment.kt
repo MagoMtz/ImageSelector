@@ -8,14 +8,20 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.mago.imagenesapdf.adapter.ImageAdapter
+import com.mago.imagenesapdf.adapter.SelectedImagesAdapter
 import com.mago.imagenesapdf.extensions.removeFragment
 import com.mago.imagenesapdf.model.ImageDescription
 import com.mago.imagenesapdf.model.ImageItem
 import com.mago.imagenesapdf.util.BitmapUtil
 import com.mago.imagenesapdf.util.FragmentInstanceManager
+import kotlinx.android.synthetic.main.camera_bottom_sheet.*
 import kotlinx.android.synthetic.main.fragment_image_visualizer.*
+import java.text.FieldPosition
 import kotlin.concurrent.fixedRateTimer
 
 class ImageVisualizerFragment : Fragment() {
@@ -83,7 +89,7 @@ class ImageVisualizerFragment : Fragment() {
 
     private fun setOnClickListeners() {
         btn_close.setOnClickListener {
-
+            parentFragmentManager.removeFragment(this)
         }
         btn_delete_image.setOnClickListener {
 
@@ -113,10 +119,22 @@ class ImageVisualizerFragment : Fragment() {
             ImageDescription(imageItem.path, "")
         }
 
-        if (imageDescriptionList.isEmpty()) {
+        if (imageDescriptionList.size == 1) {
             rv_images.visibility = View.GONE
             return
         }
+
+        val adapter = SelectedImagesAdapter()
+        adapter.setupAdapter(imageDescriptionList)
+
+        rv_images.layoutManager = LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
+        rv_images.adapter = adapter
+
+        adapter.setOnItemClickListener(object : SelectedImagesAdapter.OnItemClickListener {
+            override fun onItemClick(position: Int) {
+                setImagePreview(position)
+            }
+        })
     }
 
     private fun getFragmentArgs() {

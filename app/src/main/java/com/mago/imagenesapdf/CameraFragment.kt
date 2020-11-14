@@ -38,12 +38,15 @@ import kotlinx.android.synthetic.main.fragment_image_visualizer.*
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.ArrayList
 
 class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
     private lateinit var sheetBehavior: BottomSheetBehavior<LinearLayout>
     private val pathStack = Stack<String>()
     private val disposables = CompositeDisposable()
     private lateinit var cameraFragmentListener: CameraFragmentListener
+
+    private var imageItemList: ArrayList<ImageItem> = arrayListOf()
 
     companion object {
         const val TAG = "CameraFragment"
@@ -116,6 +119,9 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
         btn_subdirectory_back.setOnClickListener {
             subdirectoryBack()
         }
+        btn_send_selected_images.setOnClickListener {
+            navigateToImageVisualizer(imageItemList)
+        }
     }
 
     private fun setupSheetBehavior() {
@@ -164,10 +170,18 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
         rv_peek.adapter = adapter
 
         adapter.setOnItemClickListener(object : OnItemClickListener {
-            override fun onImageClick(path: String) {
-                onSingleImageSelected(path)
+            override fun onImageClick(imageItem: ImageItem) {
+                onSingleImageSelected(imageItem)
             }
-            override fun onDirectoryClick(path: String) {}
+
+            override fun onImageAdd(imageItemList: List<ImageItem>) {
+                onMultipleImageSelected(imageItemList)
+            }
+
+            override fun onNoImageSelected() {
+                btn_send_selected_images.visibility = View.GONE
+            }
+            override fun onDirectoryClick(imageItem: ImageItem) {}
         })
     }
 
@@ -193,9 +207,9 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
         rv_main.addOnScrollListener(mainRVScrollListener())
 
         adapter.setOnItemClickListener(object : OnItemClickListener {
-            override fun onDirectoryClick(path: String) {
-                val file = File(path)
-                adapterChangeSource(path, adapter)
+            override fun onDirectoryClick(imageItem: ImageItem) {
+                val file = File(imageItem.path)
+                adapterChangeSource(imageItem.path, adapter)
                 if (file.parent != null) {
                     pathStack.push(file.parentFile?.absolutePath)
                     tv_location.text = file.absolutePath
@@ -203,8 +217,16 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
                 }
             }
 
-            override fun onImageClick(path: String) {
-                onSingleImageSelected(path)
+            override fun onImageClick(imageItem: ImageItem) {
+                onSingleImageSelected(imageItem)
+            }
+
+            override fun onImageAdd(imageItemList: List<ImageItem>) {
+                onMultipleImageSelected(imageItemList)
+            }
+
+            override fun onNoImageSelected() {
+                btn_send_selected_images.visibility = View.GONE
             }
         })
     }
@@ -288,9 +310,13 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
         )
     }
 
-    private fun onSingleImageSelected(path: String) {
-        val imageItem = ImageItem(path, false, null)
+    private fun onSingleImageSelected(imageItem: ImageItem) {
         navigateToImageVisualizer(listOf(imageItem))
+    }
+
+    private fun onMultipleImageSelected(imageItemList: List<ImageItem>) {
+        btn_send_selected_images.visibility = View.VISIBLE
+        this.imageItemList = ArrayList(imageItemList)
     }
 
 }

@@ -8,4 +8,6 @@
     <color name="white">#FFFFFF</color>
     <color name="gray">#cbcbcb</color>
     <color name="lite_gray">#dddddd</color>
+    <color name="green">#43A047</color>
+    <color name="blue">#00ACC1</color>
 </resources>

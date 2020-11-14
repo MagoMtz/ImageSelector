@@ -20,10 +20,10 @@ import kotlinx.android.synthetic.main.fragment_image_visualizer.*
 
 class ImageVisualizerFragment : Fragment() {
     private lateinit var imagesList: List<ImageItem>
-    //private lateinit var imageDescriptionList: List<ImageDescription>
     private lateinit var currentImage: ImageItem
-    //private lateinit var cameraFragmentListener: CameraFragmentListener
     private lateinit var listener: Listener
+    private lateinit var adapter: SelectedImagesAdapter
+    private var shouldUpdateDescription = false
 
     interface Listener {
         fun onImagesSelected(imageItemList: List<ImageItem>)
@@ -54,7 +54,6 @@ class ImageVisualizerFragment : Fragment() {
         val imageListJson = arguments?.getString(IMAGES_PARAM) ?: ""
         val type = object : TypeToken<List<ImageItem>>() {}.type
         imagesList = Gson().fromJson<List<ImageItem>>(imageListJson, type) ?: arrayListOf()
-        //cameraFragmentListener = activity as CameraFragmentListener
     }
 
     override fun onCreateView(
@@ -92,15 +91,17 @@ class ImageVisualizerFragment : Fragment() {
 
         }
         btn_send.setOnClickListener {
-            //cameraFragmentListener.onImageSelection(imageDescriptionList)
-            //findNavController().navigateUp()
             listener.onImagesSelected(imagesList)
             parentFragmentManager.removeFragment(this)
         }
         et_description.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
-                if (::currentImage.isInitialized)
-                    currentImage.description = s?.toString() ?: ""
+                if (::currentImage.isInitialized && shouldUpdateDescription) {
+                    val description = s?.toString() ?: ""
+                    val pos = imagesList.indexOf(currentImage)
+                    adapter.updateImageDescription(pos, description)
+                }
+                shouldUpdateDescription = true
             }
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
@@ -108,33 +109,13 @@ class ImageVisualizerFragment : Fragment() {
     }
 
     private fun setImagePreview(imageItem: ImageItem) {
-        //if (imagesList.isEmpty())
-        //    return
-/*
-        val imageItem = imagesList[pos].apply {
-            if (previewBm == null) {
-                val imageBm = BitmapUtil.decodeBitmapFromFile(path, 800, 600)
-                previewBm = imageBm
-            }
-        }
-
- */
+        shouldUpdateDescription = false
         iv_image.setImageBitmap(imageItem.previewBm)
+        et_description.setText(imageItem.description)
     }
 
     private fun setupImagesRV() {
-        /*
-        imageDescriptionList = imagesList.map { imageItem ->
-            ImageDescription(imageItem.path, "", imageItem.imageBm, imageItem.previewBm)
-        }
-
-        if (imageDescriptionList.size == 1) {
-            rv_images.visibility = View.GONE
-            return
-        }
-         */
-
-        val adapter = SelectedImagesAdapter()
+        adapter = SelectedImagesAdapter()
         adapter.setupAdapter(imagesList)
 
         rv_images.layoutManager = LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
@@ -142,9 +123,8 @@ class ImageVisualizerFragment : Fragment() {
 
         adapter.setOnItemClickListener(object : SelectedImagesAdapter.OnItemClickListener {
             override fun onItemClick(imageItem: ImageItem) {
-                setImagePreview(imageItem)
-                et_description.setText(imageItem.description)
                 currentImage = imageItem
+                setImagePreview(imageItem)
             }
         })
     }

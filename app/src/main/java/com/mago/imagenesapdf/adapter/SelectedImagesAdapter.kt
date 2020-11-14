@@ -58,6 +58,11 @@ class SelectedImagesAdapter: RecyclerView.Adapter<SelectedImagesAdapter.ViewHold
         this.listener = listener
     }
 
+    fun updateImageDescription(position: Int, description: String) {
+        imagesSelectedList[position].description = description
+        notifyItemChanged(position)
+    }
+
     class ViewHolder(v: View) : RecyclerView.ViewHolder(v)
 
 }

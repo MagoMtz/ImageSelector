@@ -14,7 +14,7 @@ import kotlinx.android.synthetic.main.content_selected_images_adapter.view.*
  * @since 13/11/2020.
  */
 class SelectedImagesAdapter: RecyclerView.Adapter<SelectedImagesAdapter.ViewHolder>() {
-    private var imagesSelectedList: List<ImageItem> = arrayListOf()
+    private var imagesSelectedList: ArrayList<ImageItem> = arrayListOf()
     private lateinit var listener: OnItemClickListener
 
     interface OnItemClickListener {
@@ -31,16 +31,14 @@ class SelectedImagesAdapter: RecyclerView.Adapter<SelectedImagesAdapter.ViewHold
         val image = imagesSelectedList[position]
 
         holder.itemView.iv_image.setImageBitmap(image.imageBm)
-        if (image.isSelected) {
+        if (image.isPreviewSelected) {
             holder.itemView.setBackgroundColor(ContextCompat.getColor(holder.itemView.context, R.color.blue))
         } else {
             holder.itemView.background = null
         }
         holder.itemView.setOnClickListener {
-            //holder.itemView.setBackgroundColor(ContextCompat.getColor(holder.itemView.context, R.color.blue))
-            imagesSelectedList.forEach { it.isSelected = false }
-            image.isSelected = true
-            //image.isSelected = !image.isSelected
+            imagesSelectedList.forEach { it.isPreviewSelected = false }
+            image.isPreviewSelected = true
             notifyDataSetChanged()
             if (::listener.isInitialized)
                 listener.onItemClick(image)
@@ -50,7 +48,7 @@ class SelectedImagesAdapter: RecyclerView.Adapter<SelectedImagesAdapter.ViewHold
     override fun getItemCount(): Int = imagesSelectedList.size
 
     fun setupAdapter(imagesSelectedList: List<ImageItem>) {
-        this.imagesSelectedList = imagesSelectedList
+        this.imagesSelectedList = ArrayList(imagesSelectedList)
         notifyDataSetChanged()
     }
 
@@ -61,6 +59,16 @@ class SelectedImagesAdapter: RecyclerView.Adapter<SelectedImagesAdapter.ViewHold
     fun updateImageDescription(position: Int, description: String) {
         imagesSelectedList[position].description = description
         notifyItemChanged(position)
+    }
+
+    fun setItemSelected(position: Int) {
+        imagesSelectedList[position].isPreviewSelected = true
+        notifyDataSetChanged()
+    }
+
+    fun removeItem(position: Int) {
+        imagesSelectedList.removeAt(position)
+        notifyDataSetChanged()
     }
 
     class ViewHolder(v: View) : RecyclerView.ViewHolder(v)

@@ -19,7 +19,7 @@ import com.mago.imagenesapdf.util.FragmentInstanceManager
 import kotlinx.android.synthetic.main.fragment_image_visualizer.*
 
 class ImageVisualizerFragment : Fragment() {
-    private lateinit var imagesList: List<ImageItem>
+    private lateinit var imagesList: ArrayList<ImageItem>
     private lateinit var currentImage: ImageItem
     private lateinit var listener: Listener
     private lateinit var adapter: SelectedImagesAdapter
@@ -52,8 +52,8 @@ class ImageVisualizerFragment : Fragment() {
         listener = FragmentInstanceManager().findFragmentByTag(CameraFragment.TAG) as Listener
 
         val imageListJson = arguments?.getString(IMAGES_PARAM) ?: ""
-        val type = object : TypeToken<List<ImageItem>>() {}.type
-        imagesList = Gson().fromJson<List<ImageItem>>(imageListJson, type) ?: arrayListOf()
+        val type = object : TypeToken<ArrayList<ImageItem>>() {}.type
+        imagesList = Gson().fromJson<ArrayList<ImageItem>>(imageListJson, type) ?: arrayListOf()
     }
 
     override fun onCreateView(
@@ -78,6 +78,7 @@ class ImageVisualizerFragment : Fragment() {
         setOnClickListeners()
         setupImagesRV()
         setImagePreview(imagesList[0])
+        shouldHideRemoveImageOption()
     }
 
     private fun setOnClickListeners() {
@@ -85,7 +86,7 @@ class ImageVisualizerFragment : Fragment() {
             parentFragmentManager.removeFragment(this)
         }
         btn_delete_image.setOnClickListener {
-
+            removeImage()
         }
         btn_add_image.setOnClickListener {
 
@@ -102,37 +103,62 @@ class ImageVisualizerFragment : Fragment() {
                     adapter.updateImageDescription(pos, description)
                 }
                 shouldUpdateDescription = true
+                if (s != null)
+                    et_description.setSelection(s.length)
             }
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
         })
     }
 
-    private fun setImagePreview(imageItem: ImageItem) {
-        shouldUpdateDescription = false
-        iv_image.setImageBitmap(imageItem.previewBm)
-        et_description.setText(imageItem.description)
-    }
-
     private fun setupImagesRV() {
         adapter = SelectedImagesAdapter()
         adapter.setupAdapter(imagesList)
-
-        rv_images.layoutManager = LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
-        rv_images.adapter = adapter
-
         adapter.setOnItemClickListener(object : SelectedImagesAdapter.OnItemClickListener {
             override fun onItemClick(imageItem: ImageItem) {
                 currentImage = imageItem
                 setImagePreview(imageItem)
             }
         })
+
+        rv_images.layoutManager = LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
+        rv_images.adapter = adapter
+
+        currentImage = imagesList[0]
+        shouldUpdateDescription = true
+        adapter.setItemSelected(0)
+    }
+
+    private fun setImagePreview(imageItem: ImageItem) {
+        shouldUpdateDescription = false
+        iv_image.setImageBitmap(imageItem.previewBm)
+        et_description.setText(imageItem.description)
+        adapter.setItemSelected(imagesList.indexOf(imageItem))
+        currentImage = imageItem
+    }
+
+    private fun removeImage() {
+        val pos = imagesList.indexOf(currentImage)
+        imagesList.removeAt(pos)
+        adapter.removeItem(pos)
+        if (pos < 1)
+            setImagePreview(imagesList[pos])
+        else
+            setImagePreview(imagesList[pos -1])
+        shouldHideRemoveImageOption()
+    }
+
+    private fun shouldHideRemoveImageOption() {
+        if (imagesList.size <= 1)
+            btn_delete_image.visibility = View.GONE
+        else
+            btn_delete_image.visibility = View.VISIBLE
     }
 
     private fun getFragmentArgs() {
         val mArgs: ImageVisualizerFragmentArgs by navArgs()
         val type = object : TypeToken<List<ImageItem>>() {}.type
-        imagesList = Gson().fromJson<List<ImageItem>>(mArgs.imagesListJson, type) ?: arrayListOf()
+        imagesList = Gson().fromJson<ArrayList<ImageItem>>(mArgs.imagesListJson, type) ?: arrayListOf()
     }
 
 }

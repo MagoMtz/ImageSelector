@@ -162,6 +162,13 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
 
         rv_peek.layoutManager = LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
         rv_peek.adapter = adapter
+
+        adapter.setOnItemClickListener(object : OnItemClickListener {
+            override fun onImageClick(path: String) {
+                onSingleImageSelected(path)
+            }
+            override fun onDirectoryClick(path: String) {}
+        })
     }
 
     private fun setupFirstMainRV() {
@@ -196,7 +203,9 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
                 }
             }
 
-            override fun onImageClick(path: String) {}
+            override fun onImageClick(path: String) {
+                onSingleImageSelected(path)
+            }
         })
     }
 
@@ -277,6 +286,11 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
             ImageVisualizerFragment.newInstance(imagesList),
             ImageVisualizerFragment.TAG
         )
+    }
+
+    private fun onSingleImageSelected(path: String) {
+        val imageItem = ImageItem(path, false, null)
+        navigateToImageVisualizer(listOf(imageItem))
     }
 
 }

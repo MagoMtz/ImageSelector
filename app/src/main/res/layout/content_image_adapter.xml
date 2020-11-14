@@ -6,13 +6,38 @@
     android:layout_height="@dimen/content_image_adapter_height"
     android:layout_margin="@dimen/content_image_adapter_margin">
 
-    <ImageView
-        android:id="@+id/iv_thumbnail"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="@dimen/content_image_adapter_iv_width"
         android:layout_height="@dimen/content_image_adapter_iv_height"
         android:layout_gravity="center"
-        android:contentDescription="@null"
-        />
+        >
+
+        <ImageView
+            android:id="@+id/iv_selected"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="@drawable/ic_check"
+            android:backgroundTint="@color/gray"
+            android:elevation="2dp"
+            android:visibility="gone"
+            android:contentDescription="@null"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            />
+
+        <ImageView
+            android:id="@+id/iv_thumbnail"
+            android:layout_width="@dimen/content_image_adapter_iv_width"
+            android:layout_height="@dimen/content_image_adapter_iv_height"
+            android:layout_gravity="center"
+            android:contentDescription="@null"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <TextView
         android:id="@+id/tv_path"

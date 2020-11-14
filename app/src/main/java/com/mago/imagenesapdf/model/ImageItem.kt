@@ -9,5 +9,6 @@ import android.graphics.Bitmap
 data class ImageItem (
     var path: String,
     var isDirectory: Boolean,
-    var imageBm: Bitmap?
+    var imageBm: Bitmap?,
+    var isSelected: Boolean = false
 )

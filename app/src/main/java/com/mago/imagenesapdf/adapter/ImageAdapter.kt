@@ -19,6 +19,11 @@ class ImageAdapter() : RecyclerView.Adapter<ImageAdapter.ViewHolder>() {
     private var images: List<ImageItem> = arrayListOf()
     private lateinit var onItemClickListener: OnItemClickListener
 
+    private var selected = 0
+    private var selectedItemPosition: ArrayList<Int> = arrayListOf()
+    private var imagesSelected: ArrayList<ImageItem> = arrayListOf()
+    //private var originalValues: List<ImageItem> = images
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val view = inflater.inflate(R.layout.content_image_adapter, parent, false)
@@ -44,11 +49,19 @@ class ImageAdapter() : RecyclerView.Adapter<ImageAdapter.ViewHolder>() {
                     ContextCompat.getDrawable(holder.itemView.context, R.drawable.ic_broken_image)
                 )
             holder.itemView.setOnClickListener {
-                if (::onItemClickListener.isInitialized)
-                    onItemClickListener.onImageClick(image.path)
+                val hasItemSelected = !images.none { it.isSelected }
+                if (hasItemSelected) {
+                    multipleImageSelected(image, holder.itemView, position)
+                } else {
+                    if (::onItemClickListener.isInitialized)
+                        onItemClickListener.onImageClick(image.path)
+                }
+            }
+            holder.itemView.setOnLongClickListener {
+                multipleImageSelected(image, holder.itemView, position)
+                true
             }
         }
-
 
     }
 
@@ -71,10 +84,21 @@ class ImageAdapter() : RecyclerView.Adapter<ImageAdapter.ViewHolder>() {
         return file.split("/").last()
     }
 
-    private fun isImageFile(filePath: String): Boolean {
-        return filePath.endsWith(".jpg") ||
-                filePath.endsWith(".png") ||
-                filePath.endsWith(".jpeg")
+    private fun multipleImageSelected(image: ImageItem, view: View, position: Int) {
+        when {
+            image.isSelected -> {
+                selected--
+                selectedItemPosition.remove(position)
+                view.iv_selected.visibility = View.GONE
+            }
+            else -> {
+                selected++
+                imagesSelected.add(image)
+                view.iv_selected.visibility = View.VISIBLE
+            }
+        }
+        image.isSelected = !image.isSelected
+        notifyDataSetChanged()
     }
 
     class ViewHolder(v: View) : RecyclerView.ViewHolder(v)

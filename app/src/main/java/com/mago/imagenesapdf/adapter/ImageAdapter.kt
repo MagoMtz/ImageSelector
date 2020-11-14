@@ -42,6 +42,11 @@ class ImageAdapter() : RecyclerView.Adapter<ImageAdapter.ViewHolder>() {
                     onItemClickListener.onDirectoryClick(image)
             }
         } else {
+            if (image.isSelected)
+                holder.itemView.iv_selected.visibility = View.VISIBLE
+            else
+                holder.itemView.iv_selected.visibility = View.GONE
+
             if (image.imageBm != null)
                 holder.itemView.iv_thumbnail.setImageBitmap(image.imageBm)
             else
@@ -87,13 +92,14 @@ class ImageAdapter() : RecyclerView.Adapter<ImageAdapter.ViewHolder>() {
     private fun multipleImageSelected(image: ImageItem, view: View, position: Int) {
         when {
             image.isSelected -> {
-                selected--
-                selectedItemPosition.remove(position)
+                onImageRemoved(position, image)
                 view.iv_selected.visibility = View.GONE
             }
             else -> {
-                selected++
-                imagesSelected.add(image)
+                if (!imagesSelected.contains(image)) {
+                    selected++
+                    imagesSelected.add(image)
+                }
                 view.iv_selected.visibility = View.VISIBLE
             }
         }
@@ -101,7 +107,28 @@ class ImageAdapter() : RecyclerView.Adapter<ImageAdapter.ViewHolder>() {
         notifyDataSetChanged()
 
         if (::onItemClickListener.isInitialized)
-            onItemClickListener.onImageAdd(imagesSelected)
+            if (image.isSelected)
+                onItemClickListener.onImageAdd(imagesSelected)
+            else
+                onItemClickListener.onImageRemove(imagesSelected)
+    }
+
+    fun setItemNoSelected(position: Int) {
+        onImageRemoved(position, imagesSelected[position])
+        notifyDataSetChanged()
+    }
+
+    fun removeAllSelectedImages() {
+        selected = 0
+        imagesSelected = arrayListOf()
+        images.forEach { it.isSelected = false }
+        notifyDataSetChanged()
+    }
+
+    private fun onImageRemoved(position: Int, image: ImageItem) {
+        selected--
+        selectedItemPosition.remove(position)
+        imagesSelected.remove(image)
     }
 
     class ViewHolder(v: View) : RecyclerView.ViewHolder(v)

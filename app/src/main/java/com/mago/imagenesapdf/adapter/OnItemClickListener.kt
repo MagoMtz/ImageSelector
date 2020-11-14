@@ -10,5 +10,6 @@ interface OnItemClickListener {
     fun onDirectoryClick(imageItem: ImageItem)
     fun onImageClick(imageItem: ImageItem)
     fun onImageAdd(imageItemList: List<ImageItem>)
+    fun onImageRemove(imageItemList: List<ImageItem>)
     fun onNoImageSelected()
 }

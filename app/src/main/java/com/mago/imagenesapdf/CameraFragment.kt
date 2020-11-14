@@ -41,6 +41,8 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
     private lateinit var cameraFragmentListener: CameraFragmentListener
 
     private var imageItemList: ArrayList<ImageItem> = arrayListOf()
+    private lateinit var peekAdapter: ImageAdapter
+    private lateinit var mainAdapter: ImageAdapter
 
     companion object {
         const val TAG = "CameraFragment"
@@ -80,11 +82,21 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
         parentFragmentManager.removeFragment(this)
     }
 
+    override fun onImageRemoved(imageItem: ImageItem) {
+        val pos = imageItemList.indexOf(
+            imageItemList.find { it.path == imageItem.path }
+        )
+        imageItemList[pos].isSelected = false
+        if (::mainAdapter.isInitialized)
+            mainAdapter.setItemNoSelected(pos)
+        imageItemList.removeAt(pos)
+    }
+
     private fun setup() {
         setupCameraListener()
         setClickListeners()
         setupSheetBehavior()
-        setupPeekRV()
+        //setupPeekRV()
         setupFirstMainRV()
     }
 
@@ -161,16 +173,17 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
         })
     }
 
+    /*
     private fun setupPeekRV() {
         val directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)
             .absolutePath.plus("/Camera")
-        val adapter = ImageAdapter()
-        adapterChangeSource(directory, adapter)
+        peekAdapter = ImageAdapter()
+        adapterChangeSource(directory, peekAdapter)
 
         rv_peek.layoutManager = LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
-        rv_peek.adapter = adapter
+        rv_peek.adapter = peekAdapter
 
-        adapter.setOnItemClickListener(object : OnItemClickListener {
+        peekAdapter.setOnItemClickListener(object : OnItemClickListener {
             override fun onImageClick(imageItem: ImageItem) {
                 onSingleImageSelected(imageItem)
             }
@@ -179,12 +192,20 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
                 onMultipleImageSelected(imageItemList)
             }
 
+            override fun onImageRemove(imageItemList: List<ImageItem>) {
+                if (imageItemList.isEmpty())
+                    btn_send_selected_images.visibility = View.GONE
+                this@CameraFragment.imageItemList = ArrayList(imageItemList)
+            }
+
             override fun onNoImageSelected() {
                 btn_send_selected_images.visibility = View.GONE
             }
             override fun onDirectoryClick(imageItem: ImageItem) {}
         })
     }
+
+     */
 
     private fun setupFirstMainRV() {
         val externalStorage = Environment.getExternalStorageDirectory().absolutePath
@@ -199,18 +220,18 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
     private fun setupMainRV(directory: String) {
         tv_location.text = directory
 
-        val adapter = ImageAdapter()
-        adapterChangeSource(directory, adapter)
+        mainAdapter = ImageAdapter()
+        adapterChangeSource(directory, mainAdapter)
 
         rv_main.layoutManager = GridLayoutManager(context, 3)
-        rv_main.adapter = adapter
+        rv_main.adapter = mainAdapter
         rv_main.scrollToPosition(0)
         rv_main.addOnScrollListener(mainRVScrollListener())
 
-        adapter.setOnItemClickListener(object : OnItemClickListener {
+        mainAdapter.setOnItemClickListener(object : OnItemClickListener {
             override fun onDirectoryClick(imageItem: ImageItem) {
                 val file = File(imageItem.path)
-                adapterChangeSource(imageItem.path, adapter)
+                adapterChangeSource(imageItem.path, mainAdapter)
                 if (file.parent != null) {
                     pathStack.push(file.parentFile?.absolutePath)
                     tv_location.text = file.absolutePath
@@ -224,6 +245,12 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
 
             override fun onImageAdd(imageItemList: List<ImageItem>) {
                 onMultipleImageSelected(imageItemList)
+            }
+
+            override fun onImageRemove(imageItemList: List<ImageItem>) {
+                if (imageItemList.isEmpty())
+                    btn_send_selected_images.visibility = View.GONE
+                this@CameraFragment.imageItemList = ArrayList(imageItemList)
             }
 
             override fun onNoImageSelected() {
@@ -254,6 +281,7 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
         if (pathStack.empty()) {
             return
         }
+        removeAllSelectedImages()
         val lastDir = pathStack.pop()
 
         val parent = File(lastDir).listFiles() ?: arrayOf()
@@ -326,6 +354,12 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
     private fun onMultipleImageSelected(imageItemList: List<ImageItem>) {
         btn_send_selected_images.visibility = View.VISIBLE
         this.imageItemList = ArrayList(imageItemList)
+    }
+
+    private fun removeAllSelectedImages() {
+        btn_send_selected_images.visibility = View.GONE
+        imageItemList = arrayListOf()
+        mainAdapter.removeAllSelectedImages()
     }
 
 }

@@ -1,6 +1,5 @@
 package com.mago.imagenesapdf
 
-import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.Environment
 import android.view.LayoutInflater
@@ -9,7 +8,6 @@ import android.view.ViewGroup
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.LinearLayout
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -46,7 +44,6 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
     private lateinit var cameraFragmentListener: CameraFragmentListener
 
     private var imageItemList: ArrayList<ImageItem> = arrayListOf()
-    private lateinit var peekAdapter: ImageAdapter
     private lateinit var mainAdapter: ImageAdapter
 
     private lateinit var outAnim: Animation
@@ -54,6 +51,42 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
 
     companion object {
         const val TAG = "CameraFragment"
+
+        const val SHOW_SWITCH_CAMERA_OPTION_ARG = "show_switch_camera_option_arg"
+        const val SHOW_SWITCH_FLASH_OPTION_ARG = "show_switch_flash_option_arg"
+        const val CAMERA_START_FACING_ARG = "camera_start_facing_arg"
+        const val CAMERA_START_FLASH_ARG = "camera_start_flash_arg"
+
+        class Builder {
+            private val args: Bundle = Bundle()
+
+            fun showSwitchCameraOption(show: Boolean): Builder {
+                args.putBoolean(SHOW_SWITCH_CAMERA_OPTION_ARG, show)
+                return this
+            }
+
+            fun cameraStart(facing: Facing): Builder {
+                args.putInt(CAMERA_START_FACING_ARG, facing.ordinal)
+                return this
+            }
+
+            fun showSwitchFlashOption(show: Boolean): Builder {
+                args.putBoolean(SHOW_SWITCH_FLASH_OPTION_ARG, show)
+                return this
+            }
+
+            fun flashStart(flash: Flash): Builder {
+                args.putInt(CAMERA_START_FLASH_ARG, flash.ordinal)
+                return this
+            }
+
+            fun build(): CameraFragment {
+                val fragment = CameraFragment()
+                fragment.arguments = args
+                return fragment
+            }
+
+        }
 
         fun newInstance(): CameraFragment {
             return CameraFragment()
@@ -63,7 +96,7 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         FragmentInstanceManager().addFragmentInstance(TAG, this)
-        cameraFragmentListener = activity as CameraFragmentListener
+        cameraFragmentListener = context as CameraFragmentListener
     }
 
     override fun onCreateView(
@@ -74,8 +107,6 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        camera.setLifecycleOwner(viewLifecycleOwner)
-        camera.flash = Flash.AUTO
         setup()
 
         super.onViewCreated(view, savedInstanceState)
@@ -90,7 +121,8 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
         imageItemList.filter { it.isFromCamera }.forEach { image ->
             image.path = BitmapUtil.saveBitmapToFileAsync(
                 image.previewBm!!,
-                SimpleDateFormat("ddMMyyyy_HHmmss", Locale.getDefault()).format(Date()).plus(".jpg"),
+                SimpleDateFormat("ddMMyyyy_HHmmss", Locale.getDefault()).format(Date())
+                    .plus(".jpg"),
                 "MCamera"
             )
         }
@@ -124,29 +156,91 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
     private fun setup() {
         outAnim = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_out)
         inAnim = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in)
-
+        setupCameraAttributes()
         setupCameraListener()
         setClickListeners()
         setupSheetBehavior()
-        //setupPeekRV()
         setupFirstMainRV()
+    }
+
+    private fun setupCameraAttributes() {
+        camera.setLifecycleOwner(viewLifecycleOwner)
+
+        val showFlashBtn = arguments?.getBoolean(SHOW_SWITCH_FLASH_OPTION_ARG, true)!!
+        if (!showFlashBtn)
+            btn_flash.visibility = View.INVISIBLE
+
+        val flashValue = arguments?.getInt(CAMERA_START_FLASH_ARG, -1)!!
+        if (flashValue == -1)
+            camera.flash = Flash.AUTO
+        else {
+            camera.flash = when (flashValue) {
+                Flash.TORCH.ordinal -> {
+                    btn_flash.setBackgroundResource(R.drawable.ic_torch)
+                    Flash.TORCH
+                }
+                Flash.ON.ordinal -> {
+                    btn_flash.setBackgroundResource(R.drawable.ic_flash_on)
+                    Flash.ON
+                }
+                Flash.OFF.ordinal -> {
+                    btn_flash.setBackgroundResource(R.drawable.ic_flash_off)
+                    Flash.OFF
+                }
+                Flash.AUTO.ordinal -> {
+                    btn_flash.setBackgroundResource(R.drawable.ic_flash_auto)
+                    Flash.AUTO
+                }
+                else -> {
+                    btn_flash.setBackgroundResource(R.drawable.ic_flash_auto)
+                    Flash.AUTO
+                }
+            }
+        }
+
+        val showSwitchCameraBtn = arguments?.getBoolean(SHOW_SWITCH_CAMERA_OPTION_ARG, true)!!
+        if (!showSwitchCameraBtn)
+            btn_switch_camera.visibility = View.INVISIBLE
+
+        val startingCameraValue = arguments?.getInt(CAMERA_START_FACING_ARG, -1)!!
+        if (startingCameraValue == -1)
+            camera.facing = Facing.BACK
+        else {
+            camera.facing = Facing.values().find { it.ordinal == startingCameraValue }!!
+            if (camera.facing == Facing.FRONT)
+                btn_flash.visibility = View.INVISIBLE
+        }
     }
 
     private fun setupCameraListener() {
         camera.addCameraListener(object : CameraListener() {
             override fun onPictureTaken(result: PictureResult) {
-                val fileName = "IMG_${SimpleDateFormat("ddMMyyyy_HHmmSS",Locale.getDefault()).format(Date())}.jpg"
+                val fileName = "IMG_${SimpleDateFormat(
+                    "ddMMyyyy_HHmmSS",
+                    Locale.getDefault()
+                ).format(Date())}.jpg"
                 val file = File(AppConstants.getPicturesPath("/MCamera").plus("/$fileName"))
                 result.toFile(file) { f ->
                     if (f == null)
                         return@toFile
 
-                    imageItemList.add(0,
+                    imageItemList.add(
+                        0,
                         ImageItem(
                             f.absolutePath,
                             false,
-                            BitmapUtil.decodeBitmapFromFile(f.absolutePath, 100, 100, result.rotation),
-                            BitmapUtil.decodeBitmapFromFile(f.absolutePath, 800, 600, result.rotation),
+                            BitmapUtil.decodeBitmapFromFile(
+                                f.absolutePath,
+                                100,
+                                100,
+                                result.rotation
+                            ),
+                            BitmapUtil.decodeBitmapFromFile(
+                                f.absolutePath,
+                                800,
+                                600,
+                                result.rotation
+                            ),
                             isFromCamera = true
                         )
                     )
@@ -172,11 +266,12 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
         btn_switch_camera.setOnClickListener {
             when (camera.facing) {
                 Facing.BACK -> {
-
                     camera.facing = Facing.FRONT
+                    btn_flash.visibility = View.INVISIBLE
                 }
                 Facing.FRONT -> {
                     camera.facing = Facing.BACK
+                    btn_flash.visibility = View.VISIBLE
                 }
             }
         }
@@ -190,6 +285,7 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
                             it.startAnimation(inAnim)
                             camera.flash = Flash.ON
                         }
+
                         override fun onAnimationRepeat(animation: Animation?) {}
                         override fun onAnimationStart(animation: Animation?) {}
                     })
@@ -202,6 +298,7 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
                             it.startAnimation(inAnim)
                             camera.flash = Flash.AUTO
                         }
+
                         override fun onAnimationRepeat(animation: Animation?) {}
                         override fun onAnimationStart(animation: Animation?) {}
                     })
@@ -211,15 +308,26 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
                     outAnim.setAnimationListener(object : Animation.AnimationListener {
                         override fun onAnimationEnd(animation: Animation?) {
                             it.startAnimation(inAnim)
-                            it.setBackgroundResource(R.drawable.ic_flash_off)
-                            camera.flash = Flash.OFF
+                            it.setBackgroundResource(R.drawable.ic_torch )
+                            camera.flash = Flash.TORCH
                         }
+
                         override fun onAnimationRepeat(animation: Animation?) {}
                         override fun onAnimationStart(animation: Animation?) {}
                     })
                 }
                 Flash.TORCH -> {
+                    it.startAnimation(outAnim)
+                    outAnim.setAnimationListener(object : Animation.AnimationListener {
+                        override fun onAnimationEnd(animation: Animation?) {
+                            it.setBackgroundResource(R.drawable.ic_flash_off)
+                            it.startAnimation(inAnim)
+                            camera.flash = Flash.OFF
+                        }
 
+                        override fun onAnimationRepeat(animation: Animation?) {}
+                        override fun onAnimationStart(animation: Animation?) {}
+                    })
                 }
             }
         }
@@ -262,40 +370,6 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
 
         })
     }
-
-    /*
-    private fun setupPeekRV() {
-        val directory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)
-            .absolutePath.plus("/Camera")
-        peekAdapter = ImageAdapter()
-        adapterChangeSource(directory, peekAdapter)
-
-        rv_peek.layoutManager = LinearLayoutManager(context, RecyclerView.HORIZONTAL, false)
-        rv_peek.adapter = peekAdapter
-
-        peekAdapter.setOnItemClickListener(object : OnItemClickListener {
-            override fun onImageClick(imageItem: ImageItem) {
-                onSingleImageSelected(imageItem)
-            }
-
-            override fun onImageAdd(imageItemList: List<ImageItem>) {
-                onMultipleImageSelected(imageItemList)
-            }
-
-            override fun onImageRemove(imageItemList: List<ImageItem>) {
-                if (imageItemList.isEmpty())
-                    btn_send_selected_images.visibility = View.GONE
-                this@CameraFragment.imageItemList = ArrayList(imageItemList)
-            }
-
-            override fun onNoImageSelected() {
-                btn_send_selected_images.visibility = View.GONE
-            }
-            override fun onDirectoryClick(imageItem: ImageItem) {}
-        })
-    }
-
-     */
 
     private fun setupFirstMainRV() {
         val externalStorage = Environment.getExternalStorageDirectory().absolutePath
@@ -415,7 +489,7 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
         disposables.add(
             obs.subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe ({ data ->
+                .subscribe({ data ->
                     adapter.setupAdapter(data)
                     ly_shimmer.visibility = View.GONE
                     rv_main.visibility = View.VISIBLE
@@ -427,11 +501,6 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
     }
 
     private fun navigateToImageVisualizer(imagesList: List<ImageItem>) {
-        /*
-        val navHostFragment = findNavController()
-        val action = CameraFragmentDirections.actionCameraFragmentToImageVisualizerFragment(Gson().toJson(imagesList))
-        navHostFragment.navigate(action)
-         */
         parentFragmentManager.addFragment(
             R.id.ly_container,
             ImageVisualizerFragment.newInstance(imagesList),

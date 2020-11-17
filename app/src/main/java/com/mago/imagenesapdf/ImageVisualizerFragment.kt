@@ -165,10 +165,4 @@ class ImageVisualizerFragment : Fragment() {
             btn_delete_image.visibility = View.VISIBLE
     }
 
-    private fun getFragmentArgs() {
-        val mArgs: ImageVisualizerFragmentArgs by navArgs()
-        val type = object : TypeToken<List<ImageItem>>() {}.type
-        imagesList = Gson().fromJson<ArrayList<ImageItem>>(mArgs.imagesListJson, type) ?: arrayListOf()
-    }
-
 }

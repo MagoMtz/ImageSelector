@@ -57,29 +57,66 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
         const val CAMERA_START_FACING_ARG = "camera_start_facing_arg"
         const val CAMERA_START_FLASH_ARG = "camera_start_flash_arg"
 
+        /**
+         * Class that builds a CameraFragment to define how the camera will work
+         */
         class Builder {
             private val args: Bundle = Bundle()
 
+            /**
+             * Decides if the button that switch camera is visible
+             * This func is util if you don't want the user to use either front or back camera
+             * @param show if true the switch camera button will be visible
+             */
             fun showSwitchCameraOption(show: Boolean): Builder {
                 args.putBoolean(SHOW_SWITCH_CAMERA_OPTION_ARG, show)
                 return this
             }
 
+            /**
+             * This function configure the camera that will be available at start
+             *
+             * The options are:
+             * Facing.FRONT to start with the front camera
+             * Facing.BACK to start with the back camera
+             *
+             * @param facing an Enum of Facing
+             */
             fun cameraStart(facing: Facing): Builder {
                 args.putInt(CAMERA_START_FACING_ARG, facing.ordinal)
                 return this
             }
 
+            /**
+             * Decides if the button that switch flash is visible
+             * This func is util if you don't want the user to change flash behavior
+             * @param show if true the flash button will be visible
+             */
             fun showSwitchFlashOption(show: Boolean): Builder {
                 args.putBoolean(SHOW_SWITCH_FLASH_OPTION_ARG, show)
                 return this
             }
 
+            /**
+             * This function configure the flash behavior at start
+             *
+             * The options are:
+             * Flash.OFF to turn off the flash
+             * Facing.ON to always take a picture with flash
+             * Facing.AUTO to take a picture with flash only when needed
+             * Facing.TORCH to torn on the flash
+             *
+             * @param flash an Enum of Flash
+             */
             fun flashStart(flash: Flash): Builder {
                 args.putInt(CAMERA_START_FLASH_ARG, flash.ordinal)
                 return this
             }
 
+            /**
+             * This function returns an instance of CameraFragment and configure it with custom configurations
+             * @return a CameraFragment instance
+             */
             fun build(): CameraFragment {
                 val fragment = CameraFragment()
                 fragment.arguments = args

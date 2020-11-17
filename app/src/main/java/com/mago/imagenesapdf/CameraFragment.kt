@@ -1,14 +1,17 @@
 package com.mago.imagenesapdf
 
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.Environment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
 import android.widget.LinearLayout
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.*
@@ -22,6 +25,8 @@ import com.mago.imagenesapdf.util.FragmentInstanceManager
 import com.mago.imagenesapdf.util.ImageFileFilter
 import com.otaliastudios.cameraview.CameraListener
 import com.otaliastudios.cameraview.PictureResult
+import com.otaliastudios.cameraview.controls.Facing
+import com.otaliastudios.cameraview.controls.Flash
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.disposables.CompositeDisposable
@@ -43,6 +48,9 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
     private var imageItemList: ArrayList<ImageItem> = arrayListOf()
     private lateinit var peekAdapter: ImageAdapter
     private lateinit var mainAdapter: ImageAdapter
+
+    private lateinit var outAnim: Animation
+    private lateinit var inAnim: Animation
 
     companion object {
         const val TAG = "CameraFragment"
@@ -67,6 +75,7 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         camera.setLifecycleOwner(viewLifecycleOwner)
+        camera.flash = Flash.AUTO
         setup()
 
         super.onViewCreated(view, savedInstanceState)
@@ -78,6 +87,13 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
     }
 
     override fun onImagesSelected(imageItemList: List<ImageItem>) {
+        imageItemList.filter { it.isFromCamera }.forEach { image ->
+            image.path = BitmapUtil.saveBitmapToFileAsync(
+                image.previewBm!!,
+                SimpleDateFormat("ddMMyyyy_HHmmss", Locale.getDefault()).format(Date()).plus(".jpg"),
+                "MCamera"
+            )
+        }
         cameraFragmentListener.onImageSelection(imageItemList)
         parentFragmentManager.removeFragment(this)
     }
@@ -87,12 +103,28 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
             imageItemList.find { it.path == imageItem.path }
         )
         imageItemList[pos].isSelected = false
-        if (::mainAdapter.isInitialized)
-            mainAdapter.setItemNoSelected(pos)
         imageItemList.removeAt(pos)
+
+        if (imageItem.isFromCamera)
+            File(imageItem.path).delete()
+
+        if (::mainAdapter.isInitialized && !imageItem.isFromCamera)
+            mainAdapter.setItemNoSelected(pos)
+    }
+
+    override fun onVisualizerClose() {
+        imageItemList.filter { it.isFromCamera }.forEach {
+            File(it.path).delete()
+        }
+        imageItemList = arrayListOf()
+        mainAdapter.removeAllSelectedImages()
+        btn_send_selected_images.visibility = View.GONE
     }
 
     private fun setup() {
+        outAnim = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_out)
+        inAnim = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in)
+
         setupCameraListener()
         setClickListeners()
         setupSheetBehavior()
@@ -104,16 +136,18 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
         camera.addCameraListener(object : CameraListener() {
             override fun onPictureTaken(result: PictureResult) {
                 val fileName = "IMG_${SimpleDateFormat("ddMMyyyy_HHmmSS",Locale.getDefault()).format(Date())}.jpg"
-                result.toFile(File(AppConstants.IMAGES_SAVED_PATH.plus("/MCamera/$fileName"))) { file ->
-                    if (file == null)
+                val file = File(AppConstants.getPicturesPath("/MCamera").plus("/$fileName"))
+                result.toFile(file) { f ->
+                    if (f == null)
                         return@toFile
 
                     imageItemList.add(0,
                         ImageItem(
-                            file.absolutePath,
+                            f.absolutePath,
                             false,
-                            BitmapUtil.decodeBitmapFromFile(file.absolutePath, 100, 100),
-                            BitmapUtil.decodeBitmapFromFile(file.absolutePath, 800, 600)
+                            BitmapUtil.decodeBitmapFromFile(f.absolutePath, 100, 100, result.rotation),
+                            BitmapUtil.decodeBitmapFromFile(f.absolutePath, 800, 600, result.rotation),
+                            isFromCamera = true
                         )
                     )
                     navigateToImageVisualizer(imageItemList)
@@ -134,6 +168,60 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
         }
         btn_send_selected_images.setOnClickListener {
             navigateToImageVisualizer(imageItemList)
+        }
+        btn_switch_camera.setOnClickListener {
+            when (camera.facing) {
+                Facing.BACK -> {
+
+                    camera.facing = Facing.FRONT
+                }
+                Facing.FRONT -> {
+                    camera.facing = Facing.BACK
+                }
+            }
+        }
+        btn_flash.setOnClickListener {
+            when (camera.flash) {
+                Flash.OFF -> {
+                    it.startAnimation(outAnim)
+                    outAnim.setAnimationListener(object : Animation.AnimationListener {
+                        override fun onAnimationEnd(animation: Animation?) {
+                            it.setBackgroundResource(R.drawable.ic_flash_on)
+                            it.startAnimation(inAnim)
+                            camera.flash = Flash.ON
+                        }
+                        override fun onAnimationRepeat(animation: Animation?) {}
+                        override fun onAnimationStart(animation: Animation?) {}
+                    })
+                }
+                Flash.ON -> {
+                    it.startAnimation(outAnim)
+                    outAnim.setAnimationListener(object : Animation.AnimationListener {
+                        override fun onAnimationEnd(animation: Animation?) {
+                            it.setBackgroundResource(R.drawable.ic_flash_auto)
+                            it.startAnimation(inAnim)
+                            camera.flash = Flash.AUTO
+                        }
+                        override fun onAnimationRepeat(animation: Animation?) {}
+                        override fun onAnimationStart(animation: Animation?) {}
+                    })
+                }
+                Flash.AUTO -> {
+                    it.startAnimation(outAnim)
+                    outAnim.setAnimationListener(object : Animation.AnimationListener {
+                        override fun onAnimationEnd(animation: Animation?) {
+                            it.startAnimation(inAnim)
+                            it.setBackgroundResource(R.drawable.ic_flash_off)
+                            camera.flash = Flash.OFF
+                        }
+                        override fun onAnimationRepeat(animation: Animation?) {}
+                        override fun onAnimationStart(animation: Animation?) {}
+                    })
+                }
+                Flash.TORCH -> {
+
+                }
+            }
         }
     }
 
@@ -303,8 +391,8 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
                 items.add(ImageItem(file.absolutePath, true, null, null))
             } else {
                 if (!file.isDirectory) {
-                    val imageBm = BitmapUtil.decodeBitmapFromFile(file.absolutePath, 100, 100)
-                    val previewBm = BitmapUtil.decodeBitmapFromFile(file.absolutePath, 800, 600)
+                    val imageBm = BitmapUtil.decodeBitmapFromFile(file.absolutePath, 100, 100, 0)
+                    val previewBm = BitmapUtil.decodeBitmapFromFile(file.absolutePath, 800, 600, 0)
                     items.add(
                         ImageItem(
                             file.absolutePath,
@@ -327,12 +415,14 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
         disposables.add(
             obs.subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { data ->
+                .subscribe ({ data ->
                     adapter.setupAdapter(data)
                     ly_shimmer.visibility = View.GONE
                     rv_main.visibility = View.VISIBLE
                     ly_shimmer.stopShimmerAnimation()
-                }
+                }, {
+                    it.printStackTrace()
+                })
         )
     }
 

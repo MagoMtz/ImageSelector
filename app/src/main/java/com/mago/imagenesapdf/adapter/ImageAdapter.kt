@@ -47,8 +47,8 @@ class ImageAdapter() : RecyclerView.Adapter<ImageAdapter.ViewHolder>() {
             else
                 holder.itemView.iv_selected.visibility = View.GONE
 
-            if (image.imageBm != null)
-                holder.itemView.iv_thumbnail.setImageBitmap(image.imageBm)
+            if (image.thumbBm != null)
+                holder.itemView.iv_thumbnail.setImageBitmap(image.thumbBm)
             else
                 holder.itemView.iv_thumbnail.setImageDrawable(
                     ContextCompat.getDrawable(holder.itemView.context, R.drawable.ic_broken_image)

@@ -1,7 +1,6 @@
 package com.mago.imagenesapdf
 
 import android.os.Bundle
-import android.os.Environment
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.mago.imagenesapdf.extensions.replaceFragment
@@ -22,11 +21,6 @@ class MainActivity : AppCompatActivity(), CameraFragmentListener {
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
         //getFile(Environment.getExternalStorageDirectory())
-        val file = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).absolutePath.plus("/MCamera"))
-        makeFile(
-            file,
-            file.absolutePath
-        )
 
         openCamera()
 
@@ -70,16 +64,6 @@ class MainActivity : AppCompatActivity(), CameraFragmentListener {
             }
         }
 
-    }
-
-    fun makeFile(file: File, path: String) {
-        if (!file.exists()) {
-            val slashCount = path.toCharArray().filter { it == '/' }.count()
-            val fileName = path.split("/")[slashCount]
-            val mPath = path.replace(fileName, "")
-            File(mPath).mkdirs()
-            file.createNewFile()
-        }
     }
 
     private fun openCamera() {

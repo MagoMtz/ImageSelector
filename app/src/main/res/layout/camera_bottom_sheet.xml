@@ -55,7 +55,7 @@
             android:layout_height="@dimen/bottom_sheet_camera_icon_height"
             android:layout_marginStart="@dimen/bottom_sheet_margin"
             android:layout_marginEnd="@dimen/bottom_sheet_margin"
-            android:background="@drawable/ic_camera_front"
+            android:background="@drawable/ic_switch_camera"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/btn_capture"

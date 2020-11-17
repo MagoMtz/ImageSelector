@@ -28,6 +28,7 @@ class ImageVisualizerFragment : Fragment() {
     interface Listener {
         fun onImagesSelected(imageItemList: List<ImageItem>)
         fun onImageRemoved(imageItem: ImageItem)
+        fun onVisualizerClose()
     }
 
     companion object {
@@ -84,6 +85,9 @@ class ImageVisualizerFragment : Fragment() {
 
     private fun setOnClickListeners() {
         btn_close.setOnClickListener {
+            imagesList = arrayListOf()
+            adapter.removeAllItems()
+            listener.onVisualizerClose()
             parentFragmentManager.removeFragment(this)
         }
         btn_delete_image.setOnClickListener {
@@ -147,6 +151,7 @@ class ImageVisualizerFragment : Fragment() {
             setImagePreview(imagesList[pos])
         else
             setImagePreview(imagesList[pos -1])
+
         shouldHideRemoveImageOption()
 
         if (::listener.isInitialized)

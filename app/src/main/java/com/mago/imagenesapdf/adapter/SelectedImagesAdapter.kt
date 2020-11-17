@@ -30,7 +30,7 @@ class SelectedImagesAdapter: RecyclerView.Adapter<SelectedImagesAdapter.ViewHold
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val image = imagesSelectedList[position]
 
-        holder.itemView.iv_image.setImageBitmap(image.imageBm)
+        holder.itemView.iv_image.setImageBitmap(image.thumbBm)
         if (image.isPreviewSelected) {
             holder.itemView.setBackgroundColor(ContextCompat.getColor(holder.itemView.context, R.color.blue))
         } else {
@@ -68,6 +68,11 @@ class SelectedImagesAdapter: RecyclerView.Adapter<SelectedImagesAdapter.ViewHold
 
     fun removeItem(position: Int) {
         imagesSelectedList.removeAt(position)
+        notifyDataSetChanged()
+    }
+
+    fun removeAllItems() {
+        imagesSelectedList = arrayListOf()
         notifyDataSetChanged()
     }
 

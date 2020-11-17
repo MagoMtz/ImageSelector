@@ -8,6 +8,10 @@ import android.os.Environment
  */
 object AppConstants {
 
-    val IMAGES_SAVED_PATH = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).absolutePath
+    private val IMAGES_SAVED_PATH = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM).absolutePath
+
+    fun getPicturesPath(subDirName: String): String {
+        return IMAGES_SAVED_PATH.plus("/$subDirName")
+    }
 
 }

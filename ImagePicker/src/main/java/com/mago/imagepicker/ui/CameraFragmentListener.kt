@@ -1,4 +1,4 @@
-package com.mago.imagepicker
+package com.mago.imagepicker.ui
 
 import com.mago.imagepicker.model.ImageItem
 

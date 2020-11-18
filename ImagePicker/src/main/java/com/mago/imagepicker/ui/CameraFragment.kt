@@ -1,4 +1,4 @@
-package com.mago.imagepicker
+package com.mago.imagepicker.ui
 
 import android.os.Bundle
 import android.os.Environment
@@ -13,6 +13,8 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior.*
+import com.mago.imagepicker.util.AppConstants
+import com.mago.imagepicker.R
 import com.mago.imagepicker.adapter.ImageAdapter
 import com.mago.imagepicker.extensions.addFragment
 import com.mago.imagepicker.extensions.removeFragment
@@ -36,7 +38,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
 
-class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
+class CameraFragment : Fragment(),
+    ImageVisualizerFragment.Listener {
     private lateinit var sheetBehavior: BottomSheetBehavior<LinearLayout>
     private val pathStack = Stack<String>()
     private val disposables = CompositeDisposable()
@@ -187,8 +190,12 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
     }
 
     private fun setup() {
-        outAnim = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_out)
-        inAnim = AnimationUtils.loadAnimation(requireContext(), R.anim.fade_in)
+        outAnim = AnimationUtils.loadAnimation(requireContext(),
+            R.anim.fade_out
+        )
+        inAnim = AnimationUtils.loadAnimation(requireContext(),
+            R.anim.fade_in
+        )
         setupCameraAttributes()
         setupCameraListener()
         setClickListeners()
@@ -252,7 +259,10 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
                     "ddMMyyyy_HHmmSS",
                     Locale.getDefault()
                 ).format(Date())}.jpg"
-                val file = File(AppConstants.getPicturesPath("/MCamera").plus("/$fileName"))
+                val file = File(
+                    AppConstants.getPicturesPath(
+                        "/MCamera"
+                    ).plus("/$fileName"))
                 result.toFile(file) { f ->
                     if (f == null)
                         return@toFile
@@ -341,7 +351,7 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
                     outAnim.setAnimationListener(object : Animation.AnimationListener {
                         override fun onAnimationEnd(animation: Animation?) {
                             it.startAnimation(inAnim)
-                            it.setBackgroundResource(R.drawable.ic_torch )
+                            it.setBackgroundResource(R.drawable.ic_torch)
                             camera.flash = Flash.TORCH
                         }
 
@@ -533,7 +543,9 @@ class CameraFragment : Fragment(), ImageVisualizerFragment.Listener {
         val lyId = (requireView().parent as ViewGroup).id
         parentFragmentManager.addFragment(
             lyId,
-            ImageVisualizerFragment.newInstance(imagesList),
+            ImageVisualizerFragment.newInstance(
+                imagesList
+            ),
             ImageVisualizerFragment.TAG
         )
     }

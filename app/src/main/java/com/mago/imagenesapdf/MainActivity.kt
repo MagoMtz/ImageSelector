@@ -3,14 +3,15 @@ package com.mago.imagenesapdf
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import com.mago.imagepicker.CameraFragment
-import com.mago.imagepicker.CameraFragmentListener
+import com.mago.imagepicker.ui.CameraFragment
+import com.mago.imagepicker.ui.CameraFragmentListener
 import com.mago.imagepicker.model.ImageItem
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 
 
-class MainActivity : AppCompatActivity(), CameraFragmentListener {
+class MainActivity : AppCompatActivity(),
+    CameraFragmentListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

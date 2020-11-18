@@ -3,7 +3,6 @@ package com.mago.imagepicker.util
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
-import com.mago.imagepicker.AppConstants
 import java.io.File
 import java.io.FileOutputStream
 

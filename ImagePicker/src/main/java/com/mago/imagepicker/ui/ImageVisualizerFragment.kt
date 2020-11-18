@@ -1,4 +1,4 @@
-package com.mago.imagepicker
+package com.mago.imagepicker.ui
 
 import android.os.Bundle
 import android.text.Editable
@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.mago.imagepicker.R
 import com.mago.imagepicker.adapter.SelectedImagesAdapter
 import com.mago.imagepicker.extensions.removeFragment
 import com.mago.imagepicker.model.ImageItem

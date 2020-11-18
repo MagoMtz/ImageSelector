@@ -7,7 +7,7 @@
     android:orientation="vertical"
     android:weightSum="1"
     android:background="@color/black"
-    tools:context=".ImageVisualizerFragment">
+    tools:context=".ui.ImageVisualizerFragment">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"

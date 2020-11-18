@@ -1,4 +1,4 @@
-package com.mago.imagepicker
+package com.mago.imagepicker.util
 
 import android.os.Environment
 

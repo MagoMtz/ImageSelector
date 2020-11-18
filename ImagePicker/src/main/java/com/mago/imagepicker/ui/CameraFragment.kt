@@ -133,7 +133,10 @@ class CameraFragment : Fragment(),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         FragmentInstanceManager().addFragmentInstance(TAG, this)
-        cameraFragmentListener = context as CameraFragmentListener
+        cameraFragmentListener = if (context is CameraFragmentListener)
+            context as CameraFragmentListener
+        else
+            parentFragment as CameraFragmentListener
     }
 
     override fun onCreateView(

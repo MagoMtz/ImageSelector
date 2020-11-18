@@ -54,6 +54,8 @@ dependencies {
 
     implementation 'com.karumi:dexter:6.2.2'
 
-    api project(path: ':ImagePicker')
+    implementation 'com.github.MagoMtz:ImageSelector:v0.0.1'
+
+    //api project(path: ':ImagePicker')
 
 }

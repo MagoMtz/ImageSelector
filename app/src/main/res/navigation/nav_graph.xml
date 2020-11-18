@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/FirstFragment"
-        android:name="com.mago.imagenesapdf.FirstFragment"
+        android:name="com.mago.imagepickerapp.FirstFragment"
         android:label="@string/first_fragment_label"
         tools:layout="@layout/fragment_first">
 
@@ -20,7 +20,7 @@
 
     <fragment
         android:id="@+id/cameraFragment"
-        android:name="com.mago.imagenesapdf.CameraFragment"
+        android:name="com.mago.imagepickerapp.CameraFragment"
         android:label="@string/second_fragment_label"
         tools:layout="@layout/fragment_camera">
 
@@ -37,7 +37,7 @@
 
     <fragment
         android:id="@+id/imageVisualizerFragment"
-        android:name="com.mago.imagenesapdf.ImageVisualizerFragment"
+        android:name="com.mago.imagepickerapp.ImageVisualizerFragment"
         android:label="fragment_image_visualizer"
         tools:layout="@layout/fragment_image_visualizer" >
 

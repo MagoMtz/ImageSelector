@@ -36,6 +36,7 @@ import kotlinx.android.synthetic.main.fragment_camera_content.*
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.jar.Manifest
 import kotlin.collections.ArrayList
 
 class CameraFragment : Fragment(),
@@ -190,10 +191,12 @@ class CameraFragment : Fragment(),
     }
 
     private fun setup() {
-        outAnim = AnimationUtils.loadAnimation(requireContext(),
+        outAnim = AnimationUtils.loadAnimation(
+            requireContext(),
             R.anim.fade_out
         )
-        inAnim = AnimationUtils.loadAnimation(requireContext(),
+        inAnim = AnimationUtils.loadAnimation(
+            requireContext(),
             R.anim.fade_in
         )
         setupCameraAttributes()
@@ -262,7 +265,8 @@ class CameraFragment : Fragment(),
                 val file = File(
                     AppConstants.getPicturesPath(
                         "/MCamera"
-                    ).plus("/$fileName"))
+                    ).plus("/$fileName")
+                )
                 result.toFile(file) { f ->
                     if (f == null)
                         return@toFile

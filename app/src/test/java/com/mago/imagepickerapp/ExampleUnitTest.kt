@@ -1,4 +1,4 @@
-package com.mago.imagenesapdf
+package com.mago.imagepickerapp
 
 import org.junit.Test
 

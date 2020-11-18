@@ -1,4 +1,4 @@
-package com.mago.imagenesapdf
+package com.mago.imagepickerapp
 
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager

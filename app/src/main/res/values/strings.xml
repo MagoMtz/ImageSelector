@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Imagenes a Pdf</string>
+    <string name="app_name">Image picker</string>
     <string name="action_settings">Settings</string>
 
     <!-- Strings used for fragments for navigation -->
@@ -15,4 +15,7 @@
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
 
     <string name="add_description">Agregar una descripción</string>
+    <string name="permissions_title">Permisos requeridos</string>
+    <string name="permissions_message">Para el funcionamiento correcto de la aplicación es necesario otorgar todos los permisos</string>
+    <string name="permissions_denied_message">No se puede hacer uso de la aplicación sin otorgar permisos</string>
 </resources>

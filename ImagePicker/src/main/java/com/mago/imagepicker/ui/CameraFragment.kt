@@ -52,6 +52,8 @@ class CameraFragment : Fragment(),
     private lateinit var outAnim: Animation
     private lateinit var inAnim: Animation
 
+    private var directory = "MCamera"
+
     companion object {
         const val TAG = "CameraFragment"
 
@@ -59,12 +61,22 @@ class CameraFragment : Fragment(),
         const val SHOW_SWITCH_FLASH_OPTION_ARG = "show_switch_flash_option_arg"
         const val CAMERA_START_FACING_ARG = "camera_start_facing_arg"
         const val CAMERA_START_FLASH_ARG = "camera_start_flash_arg"
+        const val DIR_NAME_ARG = "dir_name_arg"
 
         /**
          * Class that builds a CameraFragment to define how the camera will work
          */
         class Builder {
             private val args: Bundle = Bundle()
+
+            /**
+             * Overrides the folder name where the pictures taken will be stored
+             * @param dirName the name of the directory
+             */
+            fun setDirectoryName(dirName: String): Builder {
+                args.putString(DIR_NAME_ARG, dirName)
+                return this
+            }
 
             /**
              * Decides if the button that switch camera is visible
@@ -158,14 +170,6 @@ class CameraFragment : Fragment(),
     }
 
     override fun onImagesSelected(imageItemList: List<ImageItem>) {
-        imageItemList.filter { it.isFromCamera }.forEach { image ->
-            image.path = BitmapUtil.saveBitmapToFileAsync(
-                image.previewBm!!,
-                SimpleDateFormat("ddMMyyyy_HHmmss", Locale.getDefault()).format(Date())
-                    .plus(".jpg"),
-                "MCamera"
-            )
-        }
         cameraFragmentListener.onImageSelection(imageItemList)
         parentFragmentManager.removeFragment(this)
     }
@@ -203,10 +207,17 @@ class CameraFragment : Fragment(),
             R.anim.fade_in
         )
         setupCameraAttributes()
+        setupCameraDir()
         setupCameraListener()
         setClickListeners()
         setupSheetBehavior()
         setupFirstMainRV()
+    }
+
+    private fun setupCameraDir() {
+        val file = File(AppConstants.getPicturesPath(directory))
+        if (!file.exists())
+            file.mkdirs()
     }
 
     private fun setupCameraAttributes() {
@@ -267,7 +278,7 @@ class CameraFragment : Fragment(),
                 ).format(Date())}.jpg"
                 val file = File(
                     AppConstants.getPicturesPath(
-                        "/MCamera"
+                        directory
                     ).plus("/$fileName")
                 )
                 result.toFile(file) { f ->

@@ -3,20 +3,14 @@ package com.mago.imagenesapdf
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import com.mago.imagenesapdf.extensions.replaceFragment
-import com.mago.imagenesapdf.model.ImageItem
-import com.otaliastudios.cameraview.controls.Facing
-import com.otaliastudios.cameraview.controls.Flash
+import com.mago.imagepicker.CameraFragment
+import com.mago.imagepicker.CameraFragmentListener
+import com.mago.imagepicker.model.ImageItem
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
-import java.io.File
 
 
 class MainActivity : AppCompatActivity(), CameraFragmentListener {
-
-    companion object {
-        val imagesFolder = arrayListOf<String>()
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,7 +31,9 @@ class MainActivity : AppCompatActivity(), CameraFragmentListener {
 
         val sb = StringBuilder()
         imageItemList.forEach { imageDescription ->
-            sb.append(imageDescription.path)
+            sb.append("path: ${imageDescription.path}")
+            sb.append("\n")
+            sb.append("desc: ${imageDescription.description}")
             sb.append("\n")
         }
         tv_text.text = sb.toString()

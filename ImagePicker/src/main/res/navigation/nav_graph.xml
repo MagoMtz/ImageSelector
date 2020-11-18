@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/FirstFragment">
+
+    <fragment
+        android:id="@+id/FirstFragment"
+        android:name="com.mago.imagenesapdf.FirstFragment"
+        android:label="@string/first_fragment_label"
+        tools:layout="@layout/fragment_first">
+
+        <action
+            android:id="@+id/action_FirstFragment_to_SecondFragment"
+            app:destination="@id/cameraFragment"
+            app:enterAnim="@android:anim/slide_in_left"
+            app:exitAnim="@android:anim/slide_out_right" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/cameraFragment"
+        android:name="com.mago.imagenesapdf.CameraFragment"
+        android:label="@string/second_fragment_label"
+        tools:layout="@layout/fragment_camera">
+
+        <action
+            android:id="@+id/action_cameraFragment_to_FirstFragment"
+            app:destination="@id/FirstFragment"
+            />
+        <action
+            android:id="@+id/action_cameraFragment_to_imageVisualizerFragment"
+            app:destination="@id/imageVisualizerFragment"
+            app:enterAnim="@android:anim/slide_in_left"
+            app:exitAnim="@android:anim/slide_out_right" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/imageVisualizerFragment"
+        android:name="com.mago.imagenesapdf.ImageVisualizerFragment"
+        android:label="fragment_image_visualizer"
+        tools:layout="@layout/fragment_image_visualizer" >
+
+        <argument
+            android:name="imagesListJson"
+            app:argType="string" />
+
+    </fragment>
+</navigation>
